@@ -1,4 +1,4 @@
-source("D:/R/grf2/input_utilities.R")
-source("D:/R/grf2/multi_regression_forest.R")
+source("D:/R/grf/input_utilities.R")
+source("D:/R/grf/multi_regression_forest.R")
 library(Rcpp)
-sourceCpp("D:/R/grf2/MultiRegressionForestBindings.cpp")
+sourceCpp("D:/R/grf/MultiRegressionForestBindings.cpp")
