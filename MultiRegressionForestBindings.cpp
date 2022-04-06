@@ -105,7 +105,7 @@ Rcpp::List multi_regression_predict_oob(const Rcpp::List& forest_object,
 }
 
 /*** R
-data = read.csv("D:/R/grf/dat_multiRF.csv")
+data = read.csv("C:/grf/dat_multiRF.csv")
 X = data[3:12]
 Y = data[1:2]
 forest = multi_regression_forest(X,Y,1, honesty=F)
