@@ -103,15 +103,3 @@ Rcpp::List multi_regression_predict_oob(const Rcpp::List& forest_object,
   Rcpp::List result = RcppUtilities::create_prediction_object(predictions);
   return result;
 }
-
-/*** R
-data = read.csv("C:/grf/dat_multiRF.csv")
-X = data[3:12]
-Y = data[1:2]
-forest = multi_regression_forest(X,Y,1, honesty=F)
-new_data = matrix(c(0.791961346, -0.547185228, -0.597154391, -0.385432707, -0.660770696, 0.536028078, 0.283616233, -0.179933712, -0.020123282, -0.735890979), nrow=1, ncol=10)
-# 0.791961346	-0.547185228	-0.597154391	-0.385432707	-0.660770696	0.536028078	0.283616233	-0.179933712	-0.020123282	-0.735890979
-
-outcome = predict.multi_regression_forest(forest, new_data)
-outcome
-*/
