@@ -62,9 +62,6 @@ private:
   size_t* counter;
   Eigen::ArrayXXd sums;
   double* weight_sums;
-  //
-  Eigen::Matrix2d sigma;
-  //
   double alpha;
   double imbalance_penalty;
   size_t num_outcomes;

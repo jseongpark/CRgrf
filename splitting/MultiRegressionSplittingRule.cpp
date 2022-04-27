@@ -31,11 +31,6 @@ MultiRegressionSplittingRule::MultiRegressionSplittingRule(size_t max_num_unique
     num_outcomes(num_outcomes) {
   this->counter = new size_t[max_num_unique_values];
   this->sums = Eigen::ArrayXXd(max_num_unique_values, num_outcomes);
-  this->sigma = Eigen::Matrix2d(num_outcomes, num_outcomes);
-  sigma(0, 0) = 1;
-  sigma(0, 1) = 0.5;
-  sigma(1, 0) = 0.5;
-  sigma(1, 1) = 1;
 }
 
 MultiRegressionSplittingRule::~MultiRegressionSplittingRule() {
@@ -51,7 +46,6 @@ bool MultiRegressionSplittingRule::find_best_split(const Data& data,
                                                    const std::vector<std::vector<size_t>>& samples,
                                                    std::vector<size_t>& split_vars,
                                                    std::vector<double>& split_values) {
-
   size_t size_node = samples[node].size();
   size_t min_child_size = std::max<size_t>(static_cast<size_t>(std::ceil(size_node * alpha)), 1uL);
 
@@ -150,18 +144,27 @@ void MultiRegressionSplittingRule::find_best_split_value(const Data& data,
     mu_right = (sum_node - sum_left) / n_right;
 
     double ssl = 0;
+    Eigen::MatrixXd Lstar = Eigen::MatrixXd(size_node,2);
+    Eigen::VectorXd mu = (n_left * mu_left + n_right * mu_right) / size_node;
+    for (int i = 0; i < size_node; i++) {
+        for (int j = 0; j < 2; j++) {
+            Lstar(i, j) = responses_by_sample.row(sorted_samples[i])(0, j) - mu(j);
+        }
+    }
+    Eigen::MatrixXd Q_pinv = (Lstar.transpose() * Lstar).completeOrthogonalDecomposition().pseudoInverse();
+
     Eigen::VectorXd sample_difference;
     for (size_t i = 0; i < n_left; i++) {
       sample_difference = responses_by_sample.row(sorted_samples[i]);
       sample_difference = sample_difference - mu_left;
-      ssl += static_cast<double>(sample_difference.transpose() * sigma.inverse() * sample_difference);
+      ssl += static_cast<double>(sample_difference.transpose() * Q_pinv * sample_difference);
     }
 
     double ssr = 0;
     for (size_t i = n_left; i < size_node; i++) {
       sample_difference = responses_by_sample.row(sorted_samples[i]);
       sample_difference = sample_difference - mu_right;
-      ssl += static_cast<double>(sample_difference.transpose() * sigma.inverse() * sample_difference);
+      ssl += static_cast<double>(sample_difference.transpose() * Q_pinv * sample_difference);
     }
 
     double loss = n_left / size_node * ssl + n_right / size_node * ssr;
