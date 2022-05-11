@@ -19,6 +19,7 @@
 #define GRF_TREEOPTIONS_H
 
 #include "../commons/globals.h"
+#include "../commons/Data.h"
 
 namespace grf {
 
@@ -30,7 +31,9 @@ public:
               double honesty_fraction,
               bool honesty_prune_leaves,
               double alpha,
-              double imbalance_penalty);
+              double imbalance_penalty,
+              size_t Q_size,
+              Eigen::MatrixXd Q_inv);
 
   uint get_mtry() const;
   uint get_min_node_size() const;
@@ -59,6 +62,9 @@ public:
    */
   double get_imbalance_penalty() const;
 
+  size_t get_Q_size() const;
+  Eigen::MatrixXd get_Q_inv() const;
+
 private:
   uint mtry;
   uint min_node_size;
@@ -67,6 +73,9 @@ private:
   bool honesty_prune_leaves;
   double alpha;
   double imbalance_penalty;
+
+  size_t Q_size;
+  Eigen::MatrixXd Q_inv;
 };
 
 } // namespace grf

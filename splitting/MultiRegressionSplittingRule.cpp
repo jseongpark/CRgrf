@@ -45,7 +45,8 @@ bool MultiRegressionSplittingRule::find_best_split(const Data& data,
                                                    const Eigen::ArrayXXd& responses_by_sample,
                                                    const std::vector<std::vector<size_t>>& samples,
                                                    std::vector<size_t>& split_vars,
-                                                   std::vector<double>& split_values) {
+                                                   std::vector<double>& split_values,
+                                                   size_t Q_size, Eigen::MatrixXd Q_inv) {
   size_t size_node = samples[node].size();
   size_t min_child_size = std::max<size_t>(static_cast<size_t>(std::ceil(size_node * alpha)), 1uL);
 
@@ -62,7 +63,7 @@ bool MultiRegressionSplittingRule::find_best_split(const Data& data,
   // For all possible split variables
   for (auto& var : possible_split_vars) {
     find_best_split_value(data, node, var, sum_node, size_node, min_child_size,
-                          best_value, best_var, best_loss, responses_by_sample, samples);
+                          best_value, best_var, best_loss, responses_by_sample, samples, Q_size, Q_inv);
   }
 
   // Stop if no good split found
@@ -84,7 +85,8 @@ void MultiRegressionSplittingRule::find_best_split_value(const Data& data,
                                                     double& best_value, size_t& best_var,
                                                     double& best_loss,
                                                     const Eigen::ArrayXXd& responses_by_sample,
-                                                    const std::vector<std::vector<size_t>>& samples) {
+                                                    const std::vector<std::vector<size_t>>& samples,
+                                                    size_t Q_size, Eigen::MatrixXd Q_inv) {
   // sorted_samples: the node samples in increasing order (may contain duplicated Xij). Length: size_node
   std::vector<double> possible_split_values; // 실제 값인데, 중복 제외
   std::vector<size_t> sorted_samples; // 실제 index
@@ -144,15 +146,18 @@ void MultiRegressionSplittingRule::find_best_split_value(const Data& data,
     mu_right = (sum_node - sum_left) / n_right;
 
     double ssl = 0;
-    Eigen::MatrixXd Lstar = Eigen::MatrixXd(size_node,2);
-    Eigen::VectorXd mu = (n_left * mu_left + n_right * mu_right) / size_node;
-    for (int i = 0; i < size_node; i++) {
-        for (int j = 0; j < 2; j++) {
-            Lstar(i, j) = responses_by_sample.row(sorted_samples[i])(0, j) - mu(j);
+    Eigen::MatrixXd Q_pinv = Q_inv;
+    if (Q_size == 0) {
+        Eigen::MatrixXd Lstar = Eigen::MatrixXd(size_node, 2);
+        Eigen::VectorXd mu = (n_left * mu_left + n_right * mu_right) / size_node;
+        for (int i = 0; i < size_node; i++) {
+            for (int j = 0; j < 2; j++) {
+                Lstar(i, j) = responses_by_sample.row(sorted_samples[i])(0, j) - mu(j);
+            }
         }
+        Q_pinv = (Lstar.transpose() * Lstar).completeOrthogonalDecomposition().pseudoInverse();
     }
-    Eigen::MatrixXd Q_pinv = (Lstar.transpose() * Lstar).completeOrthogonalDecomposition().pseudoInverse();
-
+    
     Eigen::VectorXd sample_difference;
     for (size_t i = 0; i < n_left; i++) {
       sample_difference = responses_by_sample.row(sorted_samples[i]);

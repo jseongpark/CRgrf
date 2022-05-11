@@ -83,7 +83,10 @@ multi_regression_forest <- function(X, Y,
                                     imbalance.penalty = 0,
                                     compute.oob.predictions = TRUE,
                                     num.threads = NULL,
-                                    seed = runif(1, 0, .Machine$integer.max)) {
+                                    seed = runif(1, 0, .Machine$integer.max),
+                                    Q.size = 0,
+                                    Q.inv = matrix()
+) {
   has.missing.values <- validate_X(X, allow.na = TRUE)
   validate_sample_weights(sample.weights, X)
   Y <- validate_observations(Y, X, allow.matrix = TRUE)
@@ -105,7 +108,10 @@ multi_regression_forest <- function(X, Y,
                imbalance.penalty = imbalance.penalty,
                compute.oob.predictions = compute.oob.predictions,
                num.threads = num.threads,
-               seed = seed)
+               seed = seed,
+               Q.size = Q.size,
+               q.inv = Q.inv
+  )
 
   forest <- do.call.rcpp(multi_regression_train, c(data, args))
   class(forest) <- c("multi_regression_forest", "grf")

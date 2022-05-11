@@ -44,7 +44,7 @@ public:
                        const Eigen::ArrayXXd& responses_by_sample,
                        const std::vector<std::vector<size_t>>& samples,
                        std::vector<size_t>& split_vars,
-                       std::vector<double>& split_values);
+                       std::vector<double>& split_values, size_t Q_size, Eigen::MatrixXd Q_inv);
 
 private:
   void find_best_split_value(const Data& data,
@@ -57,8 +57,8 @@ private:
                              size_t& best_var,
                              double& best_loss,
                              const Eigen::ArrayXXd& responses_by_sample,
-                             const std::vector<std::vector<size_t>>& samples);
-
+                             const std::vector<std::vector<size_t>>& samples,
+                             size_t Q_size, Eigen::MatrixXd Q_inv);
   size_t* counter;
   Eigen::ArrayXXd sums;
   double* weight_sums;

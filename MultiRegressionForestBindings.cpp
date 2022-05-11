@@ -45,10 +45,21 @@ Rcpp::List multi_regression_train(const Rcpp::NumericMatrix& train_matrix,
                                   unsigned int samples_per_cluster,
                                   bool compute_oob_predictions,
                                   unsigned int num_threads,
-                                  unsigned int seed) {
+                                  unsigned int seed,
+                                  size_t Q_size,
+                                  const Rcpp::NumericMatrix& q_inv
+) {
   clock_t  start, end;
   start = clock();
+  
   Data data = RcppUtilities::convert_data(train_matrix);
+  
+  Eigen::MatrixXd Q_inv = Eigen::MatrixXd(Q_size, Q_size);
+  for (int i = 0; i < Q_size; i++) {
+      for (int j = 0; j < Q_size; j++) {
+          Q_inv(i, j) = q_inv.begin()[i * Q_size + j];
+      }
+  }
   data.set_outcome_index(outcome_index);
   if (use_sample_weights) {
     data.set_weight_index(sample_weight_index);
@@ -56,7 +67,8 @@ Rcpp::List multi_regression_train(const Rcpp::NumericMatrix& train_matrix,
 
   size_t ci_group_size = 1;
   ForestOptions options(num_trees, ci_group_size, sample_fraction, mtry, min_node_size, honesty,
-      honesty_fraction, honesty_prune_leaves, alpha, imbalance_penalty, num_threads, seed, clusters, samples_per_cluster);
+      honesty_fraction, honesty_prune_leaves, alpha, imbalance_penalty, num_threads, seed, clusters, samples_per_cluster
+  , Q_size, Q_inv);
   ForestTrainer trainer = multi_regression_trainer(data.get_num_outcomes());
   Forest forest = trainer.train(data, options);
 

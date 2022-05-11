@@ -40,7 +40,9 @@ public:
                 uint num_threads,
                 uint random_seed,
                 const std::vector<size_t>& sample_clusters,
-                uint samples_per_cluster);
+                uint samples_per_cluster,
+                size_t Q_size,
+                Eigen::MatrixXd Q_inv);
 
   static uint validate_num_threads(uint num_threads);
 

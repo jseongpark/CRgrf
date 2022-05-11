@@ -50,7 +50,8 @@ public:
                                const Eigen::ArrayXXd& responses_by_sample,
                                const std::vector<std::vector<size_t>>& samples,
                                std::vector<size_t>& split_vars,
-                               std::vector<double>& split_values) = 0;
+                               std::vector<double>& split_values,
+                               size_t Q_size, Eigen::MatrixXd Q_inv) = 0;
 };
 
 } // namespace grf

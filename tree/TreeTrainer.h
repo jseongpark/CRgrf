@@ -80,7 +80,9 @@ private:
                            std::vector<double>& split_values,
                            std::vector<bool>& send_missing_left,
                            Eigen::ArrayXXd& responses_by_sample,
-                           uint min_node_size) const ;
+                           uint min_node_size,
+                           size_t Q_size,
+                           Eigen::MatrixXd Q_inv) const ;
 
   std::set<size_t> disallowed_split_variables;
 

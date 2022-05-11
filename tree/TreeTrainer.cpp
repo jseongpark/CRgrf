@@ -69,7 +69,7 @@ namespace grf {
         size_t i = 0;
         Eigen::ArrayXXd responses_by_sample(data.get_num_rows(), relabeling_strategy->get_response_length());
 
-        int _N = 0;
+       // int _N = 0;
         while (num_open_nodes > 0) {
             //
             /*
@@ -188,7 +188,10 @@ namespace grf {
             split_values,
             send_missing_left,
             responses_by_sample,
-            options.get_min_node_size());
+            options.get_min_node_size(),
+            options.get_Q_size(),
+            options.get_Q_inv()
+        );
         if (stop) {
             return true;
         }
@@ -234,7 +237,10 @@ namespace grf {
         std::vector<double>& split_values,
         std::vector<bool>& send_missing_left,
         Eigen::ArrayXXd& responses_by_sample,
-        uint min_node_size) const {
+        uint min_node_size,
+        size_t Q_size,
+        Eigen::MatrixXd Q_inv
+        ) const {
         // Check node size, stop if maximum reached
         if (samples[node].size() <= min_node_size) {
             split_values[node] = -1.0;
@@ -250,7 +256,8 @@ namespace grf {
             responses_by_sample,
             samples,
             split_vars,
-            split_values)) {
+            split_values,
+            Q_size, Q_inv)) {
             split_values[node] = -1.0;
             return true;
         }
