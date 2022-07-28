@@ -1,5 +1,5 @@
 file_name <- "MultiRegressionForestBindings.cpp"
-default_dir = "C:/grf"
+default_dir = "C:/CRgrf"
 
 run <- function(dir = default_dir) {
 	source(paste0(dir, "/input_utilities.R"))

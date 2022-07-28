@@ -145,7 +145,6 @@ void MultiRegressionSplittingRule::find_best_split_value(const Data& data,
     }
     mu_right = (sum_node - sum_left) / n_right;
 
-    double ssl = 0;
     Eigen::MatrixXd Q_pinv = Q_inv;
     if (Q_size == 0) {
         Eigen::MatrixXd Lstar = Eigen::MatrixXd(size_node, 2);
@@ -159,6 +158,8 @@ void MultiRegressionSplittingRule::find_best_split_value(const Data& data,
     }
     
     Eigen::VectorXd sample_difference;
+    
+    double ssl = 0;
     for (size_t i = 0; i < n_left; i++) {
       sample_difference = responses_by_sample.row(sorted_samples[i]);
       sample_difference = sample_difference - mu_left;
@@ -169,10 +170,9 @@ void MultiRegressionSplittingRule::find_best_split_value(const Data& data,
     for (size_t i = n_left; i < size_node; i++) {
       sample_difference = responses_by_sample.row(sorted_samples[i]);
       sample_difference = sample_difference - mu_right;
-      ssl += static_cast<double>(sample_difference.transpose() * Q_pinv * sample_difference);
+      ssr += static_cast<double>(sample_difference.transpose() * Q_pinv * sample_difference);
     }
-
-    double loss = n_left / size_node * ssl + n_right / size_node * ssr;
+    double loss = double(n_left) / size_node * ssl + double(n_right) / size_node * ssr;
 
     // If better than before, use this
     if (loss < best_loss) {
