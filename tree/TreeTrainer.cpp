@@ -189,8 +189,8 @@ namespace grf {
             send_missing_left,
             responses_by_sample,
             options.get_min_node_size(),
-            options.get_Q_size(),
-            options.get_Q_inv()
+            options.get_mahalanobis(),
+            options.get_sigma()
         );
         if (stop) {
             return true;
@@ -238,8 +238,8 @@ namespace grf {
         std::vector<bool>& send_missing_left,
         Eigen::ArrayXXd& responses_by_sample,
         uint min_node_size,
-        size_t Q_size,
-        Eigen::MatrixXd Q_inv
+        bool mahalanobis,
+        Eigen::MatrixXd sigma
         ) const {
         // Check node size, stop if maximum reached
         if (samples[node].size() <= min_node_size) {
@@ -257,7 +257,10 @@ namespace grf {
             samples,
             split_vars,
             split_values,
-            Q_size, Q_inv)) {
+            send_missing_left,
+            mahalanobis,
+            sigma)
+            ) {
             split_values[node] = -1.0;
             return true;
         }

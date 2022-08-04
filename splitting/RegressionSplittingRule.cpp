@@ -50,7 +50,8 @@ bool RegressionSplittingRule::find_best_split(const Data& data,
                                               const std::vector<std::vector<size_t>>& samples,
                                               std::vector<size_t>& split_vars,
                                               std::vector<double>& split_values,
-                                              std::vector<bool>& send_missing_left) {
+                                              std::vector<bool>& send_missing_left,
+                                              bool mahalanobis, Eigen::MatrixXd sigma) {
 
   size_t size_node = samples[node].size();
   size_t min_child_size = std::max<size_t>(static_cast<size_t>(std::ceil(size_node * alpha)), 1uL);
@@ -73,7 +74,7 @@ bool RegressionSplittingRule::find_best_split(const Data& data,
   // For all possible split variables
   for (auto& var : possible_split_vars) {
     find_best_split_value(data, node, var, weight_sum_node, sum_node, size_node, min_child_size,
-                          best_value, best_var, best_decrease, best_send_missing_left, responses_by_sample, samples);
+                          best_value, best_var, best_decrease, best_send_missing_left, responses_by_sample, samples, mahalanobis, sigma);
   }
 
   // Stop if no good split found
@@ -97,7 +98,8 @@ void RegressionSplittingRule::find_best_split_value(const Data& data,
                                                     double& best_value, size_t& best_var,
                                                     double& best_decrease, bool& best_send_missing_left,
                                                     const Eigen::ArrayXXd& responses_by_sample,
-                                                    const std::vector<std::vector<size_t>>& samples) {
+                                                    const std::vector<std::vector<size_t>>& samples,
+                                                    bool mahalanobis, Eigen::MatrixXd sigma) {
   // sorted_samples: the node samples in increasing order (may contain duplicated Xij). Length: size_node
   std::vector<double> possible_split_values;
   std::vector<size_t> sorted_samples;

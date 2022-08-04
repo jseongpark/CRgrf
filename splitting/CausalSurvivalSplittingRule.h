@@ -44,7 +44,8 @@ public:
                        const std::vector<std::vector<size_t>>& samples,
                        std::vector<size_t>& split_vars,
                        std::vector<double>& split_values,
-                       std::vector<bool>& send_missing_left);
+                       std::vector<bool>& send_missing_left,
+                       bool mahalanobis, Eigen::MatrixXd sigma);
 
 private:
   void find_best_split_value(const Data& data,
@@ -65,7 +66,8 @@ private:
                              double& best_decrease,
                              bool& best_send_missing_left,
                              const Eigen::ArrayXXd& responses_by_sample,
-                             const std::vector<std::vector<size_t>>& samples);
+                             const std::vector<std::vector<size_t>>& samples,
+                             bool mahalanobis, Eigen::MatrixXd sigma);
 
   size_t* counter;
   double* weight_sums;

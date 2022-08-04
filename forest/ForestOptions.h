@@ -41,8 +41,8 @@ public:
                 uint random_seed,
                 const std::vector<size_t>& sample_clusters,
                 uint samples_per_cluster,
-                size_t Q_size,
-                Eigen::MatrixXd Q_inv);
+                bool mahalanobis,
+                Eigen::MatrixXd sigma);
 
   static uint validate_num_threads(uint num_threads);
 

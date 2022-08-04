@@ -15,18 +15,15 @@
   along with grf. If not, see <http://www.gnu.org/licenses/>.
  #-------------------------------------------------------------------------------*/
 
-#include "CausalSurvivalSplittingRuleFactory.h"
-#include "../CausalSurvivalSplittingRule.h"
+#include "SurvivalSplittingRuleFactory.h"
+#include "../SurvivalSplittingRule.h"
 
 namespace grf {
 
-std::unique_ptr<SplittingRule> CausalSurvivalSplittingRuleFactory::create(size_t max_num_unique_values,
-                                                                        const TreeOptions& options) const {
-  return std::unique_ptr<SplittingRule>(new CausalSurvivalSplittingRule(
-      max_num_unique_values,
-      options.get_min_node_size(),
-      options.get_alpha(),
-      options.get_imbalance_penalty()));
+std::unique_ptr<SplittingRule> SurvivalSplittingRuleFactory::create(size_t max_num_unique_values,
+                                                                    const TreeOptions& options) const {
+  return std::unique_ptr<SplittingRule>(new SurvivalSplittingRule(
+      options.get_alpha()));
 }
 
 } // namespace grf

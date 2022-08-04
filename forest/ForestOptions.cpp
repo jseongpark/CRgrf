@@ -38,12 +38,12 @@ ForestOptions::ForestOptions(uint num_trees,
                              uint random_seed,
                              const std::vector<size_t>& sample_clusters,
                              uint samples_per_cluster,
-                             size_t Q_size,
-                             Eigen::MatrixXd Q_inv):
+                             bool mahalanobis,
+                             Eigen::MatrixXd sigma):
     ci_group_size(ci_group_size),
     sample_fraction(sample_fraction),
     tree_options(mtry, min_node_size, honesty, honesty_fraction, honesty_prune_leaves, alpha, imbalance_penalty,
-        Q_size, Q_inv),
+        mahalanobis, sigma),
     sampling_options(samples_per_cluster, sample_clusters)
     {
 

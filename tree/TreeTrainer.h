@@ -81,8 +81,8 @@ private:
                            std::vector<bool>& send_missing_left,
                            Eigen::ArrayXXd& responses_by_sample,
                            uint min_node_size,
-                           size_t Q_size,
-                           Eigen::MatrixXd Q_inv) const ;
+                           bool mahalanobis,
+                           Eigen::MatrixXd sigma) const ;
 
   std::set<size_t> disallowed_split_variables;
 

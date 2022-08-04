@@ -51,7 +51,8 @@ public:
                                const std::vector<std::vector<size_t>>& samples,
                                std::vector<size_t>& split_vars,
                                std::vector<double>& split_values,
-                               size_t Q_size, Eigen::MatrixXd Q_inv) = 0;
+                               std::vector<bool>& send_missing_left,
+                               bool mahalanobis, Eigen::MatrixXd sigma) = 0;
 };
 
 } // namespace grf

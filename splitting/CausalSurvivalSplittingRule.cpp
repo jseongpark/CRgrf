@@ -69,7 +69,8 @@ bool CausalSurvivalSplittingRule::find_best_split(const Data& data,
                                                   const std::vector<std::vector<size_t>>& samples,
                                                   std::vector<size_t>& split_vars,
                                                   std::vector<double>& split_values,
-                                                  std::vector<bool>& send_missing_left) {
+                                                  std::vector<bool>& send_missing_left,
+                                                  bool mahalanobis, Eigen::MatrixXd sigma) {
   size_t num_samples = samples[node].size();
 
   // Precompute relevant quantities for this node.
@@ -114,7 +115,7 @@ bool CausalSurvivalSplittingRule::find_best_split(const Data& data,
   for (auto& var : possible_split_vars) {
     find_best_split_value(data, node, var, num_samples, weight_sum_node, sum_node, mean_z_node, num_node_small_z,
                           sum_node_z, sum_node_z_squared, num_failures_node, min_child_size, min_child_size_survival,
-                          best_value, best_var, best_decrease, best_send_missing_left, responses_by_sample, samples);
+                          best_value, best_var, best_decrease, best_send_missing_left, responses_by_sample, samples, mahalanobis, sigma);
   }
 
   // Stop if no good split found
@@ -146,7 +147,8 @@ void CausalSurvivalSplittingRule::find_best_split_value(const Data& data,
                                                         double& best_decrease,
                                                         bool& best_send_missing_left,
                                                         const Eigen::ArrayXXd& responses_by_sample,
-                                                        const std::vector<std::vector<size_t>>& samples) {
+                                                        const std::vector<std::vector<size_t>>& samples,
+                                                        bool mahalanobis, Eigen::MatrixXd sigma) {
   std::vector<double> possible_split_values;
   std::vector<size_t> sorted_samples;
   data.get_all_values(possible_split_values, sorted_samples, samples[node], var);

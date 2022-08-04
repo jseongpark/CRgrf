@@ -15,7 +15,7 @@
   along with grf. If not, see <http://www.gnu.org/licenses/>.
  #-------------------------------------------------------------------------------*/
 
- #include "relabeling/MultiNoopRelabelingStrategy.h"
+ #include "MultiNoopRelabelingStrategy.h"
 
  namespace grf {
 

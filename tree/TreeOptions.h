@@ -32,8 +32,9 @@ public:
               bool honesty_prune_leaves,
               double alpha,
               double imbalance_penalty,
-              size_t Q_size,
-              Eigen::MatrixXd Q_inv);
+              bool mahalanobis,
+              Eigen::MatrixXd sigma
+      );
 
   uint get_mtry() const;
   uint get_min_node_size() const;
@@ -62,8 +63,8 @@ public:
    */
   double get_imbalance_penalty() const;
 
-  size_t get_Q_size() const;
-  Eigen::MatrixXd get_Q_inv() const;
+  bool get_mahalanobis() const;
+  Eigen::MatrixXd get_sigma() const;
 
 private:
   uint mtry;
@@ -74,8 +75,8 @@ private:
   double alpha;
   double imbalance_penalty;
 
-  size_t Q_size;
-  Eigen::MatrixXd Q_inv;
+  bool mahalanobis;
+  Eigen::MatrixXd sigma;
 };
 
 } // namespace grf

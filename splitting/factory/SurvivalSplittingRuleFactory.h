@@ -15,18 +15,27 @@
   along with grf. If not, see <http://www.gnu.org/licenses/>.
  #-------------------------------------------------------------------------------*/
 
-#include "CausalSurvivalSplittingRuleFactory.h"
-#include "../CausalSurvivalSplittingRule.h"
+#ifndef GRF_SURVIVALSPLITTINGRULEFACTORY_H
+#define GRF_SURVIVALSPLITTINGRULEFACTORY_H
+
+
+#include "SplittingRuleFactory.h"
 
 namespace grf {
 
-std::unique_ptr<SplittingRule> CausalSurvivalSplittingRuleFactory::create(size_t max_num_unique_values,
-                                                                        const TreeOptions& options) const {
-  return std::unique_ptr<SplittingRule>(new CausalSurvivalSplittingRule(
-      max_num_unique_values,
-      options.get_min_node_size(),
-      options.get_alpha(),
-      options.get_imbalance_penalty()));
-}
+/**
+ * A factory that produces standard surivival (logrank) splitting rules.
+ */
+class SurvivalSplittingRuleFactory final: public SplittingRuleFactory {
+public:
+  SurvivalSplittingRuleFactory() = default;
+
+  std::unique_ptr<SplittingRule> create(size_t max_num_unique_values,
+                                        const TreeOptions& options) const;
+private:
+  DISALLOW_COPY_AND_ASSIGN(SurvivalSplittingRuleFactory);
+};
 
 } // namespace grf
+
+#endif //GRF_SURVIVALSPLITTINGRULEFACTORY_H

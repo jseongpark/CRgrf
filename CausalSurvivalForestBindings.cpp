@@ -48,21 +48,36 @@ Rcpp::List causal_survival_train(const Rcpp::NumericMatrix& train_matrix,
                                  unsigned int samples_per_cluster,
                                  bool compute_oob_predictions,
                                  unsigned int num_threads,
-                                 unsigned int seed) {
+                                 unsigned int seed,
+                                 bool mahalanobis,
+                                 const Rcpp::NumericMatrix& sigma) {
   ForestTrainer trainer = causal_survival_trainer(stabilize_splits);
 
   Data data = RcppUtilities::convert_data(train_matrix);
+  
+  size_t y_size = 1;
+
+  Eigen::MatrixXd _sigma = Eigen::MatrixXd(y_size, y_size);
+  if (!mahalanobis) {
+      for (int i = 0; i < y_size; i++) {
+          for (int j = 0; j < y_size; j++) {
+              _sigma(i, j) = sigma.begin()[i * y_size + j];
+          }
+      }
+  }
+
   data.set_causal_survival_numerator_index(causal_survival_numerator_index);
   data.set_causal_survival_denominator_index(causal_survival_denominator_index);
   data.set_treatment_index(treatment_index);
   data.set_instrument_index(treatment_index);
   data.set_censor_index(censor_index);
   if (use_sample_weights) {
-    data.set_weight_index(sample_weight_index);
+      data.set_weight_index(sample_weight_index);
   }
 
   ForestOptions options(num_trees, ci_group_size, sample_fraction, mtry, min_node_size, honesty,
-      honesty_fraction, honesty_prune_leaves, alpha, imbalance_penalty, num_threads, seed, clusters, samples_per_cluster);
+      honesty_fraction, honesty_prune_leaves, alpha, imbalance_penalty, num_threads, seed, clusters, samples_per_cluster,
+      mahalanobis, _sigma);
   Forest forest = trainer.train(data, options);
 
   std::vector<Prediction> predictions;

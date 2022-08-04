@@ -46,7 +46,8 @@ bool MultiRegressionSplittingRule::find_best_split(const Data& data,
                                                    const std::vector<std::vector<size_t>>& samples,
                                                    std::vector<size_t>& split_vars,
                                                    std::vector<double>& split_values,
-                                                   size_t Q_size, Eigen::MatrixXd Q_inv) {
+                                                   std::vector<bool>& send_missing_left,
+                                                   bool mahalanobis, Eigen::MatrixXd sigma) {
   size_t size_node = samples[node].size();
   size_t min_child_size = std::max<size_t>(static_cast<size_t>(std::ceil(size_node * alpha)), 1uL);
 
@@ -58,22 +59,24 @@ bool MultiRegressionSplittingRule::find_best_split(const Data& data,
   // Initialize the variables to track the best split variable.
   size_t best_var = 0;
   double best_value = 0;
-  double best_loss = 1e11;
+  double best_decrease = 1e11;
+  bool best_send_missing_left = true;
 
   // For all possible split variables
   for (auto& var : possible_split_vars) {
     find_best_split_value(data, node, var, sum_node, size_node, min_child_size,
-                          best_value, best_var, best_loss, responses_by_sample, samples, Q_size, Q_inv);
+                          best_value, best_var, best_decrease, best_send_missing_left, responses_by_sample, samples, mahalanobis, sigma);
   }
 
   // Stop if no good split found
-  if (best_loss > 1e10) {
+  if (best_decrease > 1e10) {
     return true;
   }
 
   // Save best values
   split_vars[node] = best_var;
   split_values[node] = best_value;
+  send_missing_left[node] = best_send_missing_left;
   return false;
 }
 
@@ -83,10 +86,10 @@ void MultiRegressionSplittingRule::find_best_split_value(const Data& data,
                                                     size_t size_node,
                                                     size_t min_child_size,
                                                     double& best_value, size_t& best_var,
-                                                    double& best_loss,
+                                                    double& best_decrease, bool& best_send_missing_left,
                                                     const Eigen::ArrayXXd& responses_by_sample,
                                                     const std::vector<std::vector<size_t>>& samples,
-                                                    size_t Q_size, Eigen::MatrixXd Q_inv) {
+                                                    bool mahalanobis, Eigen::MatrixXd sigma) {
   // sorted_samples: the node samples in increasing order (may contain duplicated Xij). Length: size_node
   std::vector<double> possible_split_values; // 실제 값인데, 중복 제외
   std::vector<size_t> sorted_samples; // 실제 index
@@ -145,12 +148,12 @@ void MultiRegressionSplittingRule::find_best_split_value(const Data& data,
     }
     mu_right = (sum_node - sum_left) / n_right;
 
-    Eigen::MatrixXd Q_pinv = Q_inv;
-    if (Q_size == 0) {
-        Eigen::MatrixXd Lstar = Eigen::MatrixXd(size_node, 2);
+    Eigen::MatrixXd Q_pinv = sigma;
+    if (mahalanobis) {
+        Eigen::MatrixXd Lstar = Eigen::MatrixXd(size_node, num_outcomes);
         Eigen::VectorXd mu = (n_left * mu_left + n_right * mu_right) / size_node;
         for (int i = 0; i < size_node; i++) {
-            for (int j = 0; j < 2; j++) {
+            for (int j = 0; j < num_outcomes; j++) {
                 Lstar(i, j) = responses_by_sample.row(sorted_samples[i])(0, j) - mu(j);
             }
         }
@@ -172,13 +175,13 @@ void MultiRegressionSplittingRule::find_best_split_value(const Data& data,
       sample_difference = sample_difference - mu_right;
       ssr += static_cast<double>(sample_difference.transpose() * Q_pinv * sample_difference);
     }
-    double loss = double(n_left) / size_node * ssl + double(n_right) / size_node * ssr;
+    double decrease = double(n_left) / size_node * ssl + double(n_right) / size_node * ssr;
 
     // If better than before, use this
-    if (loss < best_loss) {
+    if (decrease < best_decrease) {
       best_value = possible_split_values[i];
       best_var = var;
-      best_loss = loss;
+      best_decrease = decrease;
     }
   }
 }

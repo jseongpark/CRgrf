@@ -84,8 +84,7 @@ multi_regression_forest <- function(X, Y,
                                     compute.oob.predictions = TRUE,
                                     num.threads = NULL,
                                     seed = runif(1, 0, .Machine$integer.max),
-                                    Q.size = 0,
-                                    Q.inv = matrix()
+                                    mahalanobis = TRUE
 ) {
   has.missing.values <- validate_X(X, allow.na = TRUE)
   validate_sample_weights(sample.weights, X)
@@ -94,7 +93,9 @@ multi_regression_forest <- function(X, Y,
   samples.per.cluster <- validate_equalize_cluster_weights(equalize.cluster.weights, clusters, sample.weights)
   num.threads <- validate_num_threads(num.threads)
 
+  sigma_ <- matrix(c(1,0,0,1), ncol=2)
   data <- create_train_matrices(X, outcome = Y, sample.weights = sample.weights)
+
   args <- list(num.trees = num.trees,
                clusters = clusters,
                samples.per.cluster = samples.per.cluster,
@@ -109,10 +110,10 @@ multi_regression_forest <- function(X, Y,
                compute.oob.predictions = compute.oob.predictions,
                num.threads = num.threads,
                seed = seed,
-               Q.size = Q.size,
-               q.inv = Q.inv
+               mahalanobis = mahalanobis,
+               sigma = sigma_
   )
-
+  
   forest <- do.call.rcpp(multi_regression_train, c(data, args))
   class(forest) <- c("multi_regression_forest", "grf")
   forest[["seed"]] <- seed

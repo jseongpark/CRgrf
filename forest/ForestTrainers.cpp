@@ -16,19 +16,30 @@
  #-------------------------------------------------------------------------------*/
 
 #include "ForestTrainers.h"
+#include "../prediction/RegressionPredictionStrategy.h"
 #include "../prediction/MultiRegressionPredictionStrategy.h"
 #include "../prediction/CausalSurvivalPredictionStrategy.h"
 
+#include "../relabeling/NoopRelabelingStrategy.h"
 #include "../relabeling/MultiNoopRelabelingStrategy.h"
 #include "../relabeling/CausalSurvivalRelabelingStrategy.h"
 
 #include "../splitting/factory/MultiRegressionSplittingRuleFactory.h"
 #include "../splitting/factory/RegressionSplittingRuleFactory.h"
+#include "../splitting/factory/SurvivalSplittingRuleFactory.h"
 #include "../splitting/factory/CausalSurvivalSplittingRuleFactory.h"
 
 namespace grf {
 
+ForestTrainer regression_trainer() {
+    std::unique_ptr<RelabelingStrategy> relabeling_strategy(new NoopRelabelingStrategy());
+    std::unique_ptr<SplittingRuleFactory> splitting_rule_factory(new RegressionSplittingRuleFactory());
+    std::unique_ptr<OptimizedPredictionStrategy> prediction_strategy(new RegressionPredictionStrategy());
 
+    return ForestTrainer(std::move(relabeling_strategy),
+        std::move(splitting_rule_factory),
+        std::move(prediction_strategy));
+}
 
 ForestTrainer multi_regression_trainer(size_t num_outcomes) {
   std::unique_ptr<RelabelingStrategy> relabeling_strategy(new MultiNoopRelabelingStrategy(num_outcomes));
@@ -38,6 +49,15 @@ ForestTrainer multi_regression_trainer(size_t num_outcomes) {
   return ForestTrainer(std::move(relabeling_strategy),
                        std::move(splitting_rule_factory),
                        std::move(prediction_strategy));
+}
+
+ForestTrainer survival_trainer() {
+    std::unique_ptr<RelabelingStrategy> relabeling_strategy(new NoopRelabelingStrategy());
+    std::unique_ptr<SplittingRuleFactory> splitting_rule_factory(new SurvivalSplittingRuleFactory());
+
+    return ForestTrainer(std::move(relabeling_strategy),
+        std::move(splitting_rule_factory),
+        nullptr);
 }
 
 ForestTrainer causal_survival_trainer(bool stabilize_splits) {
