@@ -17,8 +17,14 @@
 
 #include "ForestTrainers.h"
 #include "../prediction/MultiRegressionPredictionStrategy.h"
+#include "../prediction/CausalSurvivalPredictionStrategy.h"
+
 #include "../relabeling/MultiNoopRelabelingStrategy.h"
+#include "../relabeling/CausalSurvivalRelabelingStrategy.h"
+
 #include "../splitting/factory/MultiRegressionSplittingRuleFactory.h"
+#include "../splitting/factory/RegressionSplittingRuleFactory.h"
+#include "../splitting/factory/CausalSurvivalSplittingRuleFactory.h"
 
 namespace grf {
 
@@ -32,6 +38,19 @@ ForestTrainer multi_regression_trainer(size_t num_outcomes) {
   return ForestTrainer(std::move(relabeling_strategy),
                        std::move(splitting_rule_factory),
                        std::move(prediction_strategy));
+}
+
+ForestTrainer causal_survival_trainer(bool stabilize_splits) {
+
+    std::unique_ptr<RelabelingStrategy> relabeling_strategy(new CausalSurvivalRelabelingStrategy());
+    std::unique_ptr<SplittingRuleFactory> splitting_rule_factory = stabilize_splits
+        ? std::unique_ptr<SplittingRuleFactory>(new CausalSurvivalSplittingRuleFactory())
+        : std::unique_ptr<SplittingRuleFactory>(new RegressionSplittingRuleFactory());
+    std::unique_ptr<OptimizedPredictionStrategy> prediction_strategy(new CausalSurvivalPredictionStrategy());
+
+    return ForestTrainer(std::move(relabeling_strategy),
+        std::move(splitting_rule_factory),
+        std::move(prediction_strategy));
 }
 
 } // namespace grf

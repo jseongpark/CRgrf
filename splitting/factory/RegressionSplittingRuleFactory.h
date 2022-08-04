@@ -15,16 +15,29 @@
   along with grf. If not, see <http://www.gnu.org/licenses/>.
  #-------------------------------------------------------------------------------*/
 
-#ifndef GRF_FORESTTRAINERS_H
-#define GRF_FORESTTRAINERS_H
+#ifndef GRF_REGRESSIONSPLITTINGRULEFACTORY_H
+#define GRF_REGRESSIONSPLITTINGRULEFACTORY_H
 
-#include "ForestTrainer.h"
+
+#include "SplittingRuleFactory.h"
 
 namespace grf {
-ForestTrainer multi_regression_trainer(size_t num_outcomes);
 
-ForestTrainer causal_survival_trainer(bool stabilize_splits);
+/**
+ * A factory that produces standard regression splitting rules.
+ *
+ * In addition to performing standard regression splits, this rule applies
+ * a penalty to avoid splits too close to the edge of the node's data.
+ */
+class RegressionSplittingRuleFactory final: public SplittingRuleFactory {
+public:
+  RegressionSplittingRuleFactory() = default;
+  std::unique_ptr<SplittingRule> create(size_t max_num_unique_values,
+                                        const TreeOptions& options) const;
+private:
+  DISALLOW_COPY_AND_ASSIGN(RegressionSplittingRuleFactory);
+};
 
 } // namespace grf
 
-#endif //GRF_FORESTTRAINERS_H
+#endif //GRF_REGRESSIONSPLITTINGRULEFACTORY_H
