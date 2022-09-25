@@ -70,6 +70,8 @@ public:
 
   void set_censor_index(size_t index);
 
+  void set_status_index(size_t index);
+
   /**
    * Sorts and gets the unique values in `samples` at variable `var`.
    *
@@ -116,6 +118,8 @@ public:
 
   bool is_failure(size_t row) const;
 
+  bool is_failure_status(size_t row, size_t index) const;
+
   double get(size_t row, size_t col) const;
 
 private:
@@ -131,6 +135,7 @@ private:
   nonstd::optional<size_t> causal_survival_numerator_index;
   nonstd::optional<size_t> causal_survival_denominator_index;
   nonstd::optional<size_t> censor_index;
+  nonstd::optional<size_t> status_index;
 };
 
 // inline appropriate getters
@@ -180,6 +185,10 @@ inline double Data::get_causal_survival_denominator(size_t row) const {
 
 inline bool Data::is_failure(size_t row) const {
   return get(row, censor_index.value()) > 0.0;
+}
+
+inline bool Data::is_failure_status(size_t row, size_t index) const {
+    return get(row, censor_index.value()) == index;
 }
 
 inline double Data::get(size_t row, size_t col) const {

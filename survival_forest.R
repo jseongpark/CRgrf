@@ -114,7 +114,7 @@
 #' }
 #'
 #' @export
-survival_forest <- function(X, Y, D,
+survival_forest <- function(X, Y, D, S,
                             failure.times = NULL,
                             num.trees = 1000,
                             sample.weights = NULL,
@@ -142,6 +142,10 @@ survival_forest <- function(X, Y, D,
   D <- validate_observations(D, X)
   if (!all(D %in% c(0, 1))) {
     stop("The censor values can only be 0 or 1.")
+  }
+  S <- validate_observations(S, X)
+  if (any(S %in% seq(0, max(S), 1) )) {
+    stop("The status values can only be non-negative integer.")
   }
   clusters <- validate_clusters(clusters, X)
   samples.per.cluster <- validate_equalize_cluster_weights(equalize.cluster.weights, clusters, sample.weights)

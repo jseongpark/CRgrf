@@ -188,6 +188,7 @@ create_train_matrices <- function(X,
                                   survival.numerator = NULL,
                                   survival.denominator = NULL,
                                   censor = NULL,
+                                  status = NULL
                                   sample.weights = FALSE) {
   out <- list()
   offset <- ncol(X) - 1
@@ -213,6 +214,10 @@ create_train_matrices <- function(X,
   }
   if (!is.null(censor)) {
     out[["censor.index"]] <- offset + 1
+    offset <- offset + 1
+  }
+  if (!is.null(status)) {
+    out[["status.index"]] <- offset + 1
     offset <- offset + 1
   }
   # Forest bindings without sample weights: sample.weights = FALSE
