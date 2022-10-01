@@ -114,7 +114,7 @@
 #' }
 #'
 #' @export
-survival_forest <- function(X, Y, D = NULL, S = NULL,
+survival_forest <- function(X, Y, D = NULL,
                             failure.times = NULL,
                             num.trees = 1000,
                             sample.weights = NULL,
@@ -195,7 +195,6 @@ survival_forest <- function(X, Y, D = NULL, S = NULL,
   forest[["Y.orig"]] <- Y
   forest[["Y.relabeled"]] <- Y.relabeled
   forest[["D.orig"]] <- D
-  forest[["S.orig"]] <- S
   forest[["sample.weights"]] <- sample.weights
   forest[["clusters"]] <- clusters
   forest[["equalize.cluster.weights"]] <- equalize.cluster.weights
