@@ -83,11 +83,6 @@ void Data::set_censor_index(size_t index) {
   disallowed_split_variables.insert(index);
 }
 
-void Data::set_status_index(size_t index) {
-    this->status_index = index;
-    disallowed_split_variables.insert(index);
-}
-
 void Data::set_status_max(size_t value) {
     this->status_max = value;
 }

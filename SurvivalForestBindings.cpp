@@ -49,7 +49,8 @@ Rcpp::List survival_train(const Rcpp::NumericMatrix& train_matrix,
 	unsigned int num_threads,
 	unsigned int seed,
 	bool mahalanobis,
-	const Rcpp::NumericMatrix& sigma
+	const Rcpp::NumericMatrix& sigma,
+	size_t status_max
 ) {
 	ForestTrainer trainer = survival_trainer();
 
@@ -64,7 +65,7 @@ Rcpp::List survival_train(const Rcpp::NumericMatrix& train_matrix,
 
 	data.set_outcome_index(outcome_index);
 	data.set_censor_index(censor_index);
-
+	data.set_status_max(status_max);
 	if (use_sample_weights) {
 		data.set_weight_index(sample_weight_index);
 	}
@@ -94,10 +95,12 @@ Rcpp::List survival_predict(const Rcpp::List& forest_object,
 	int prediction_type,
 	const Rcpp::NumericMatrix& test_matrix,
 	unsigned int num_threads,
-	size_t num_failures) {
+	size_t num_failures,
+	size_t status_max) {
 	Data train_data = RcppUtilities::convert_data(train_matrix);
 	train_data.set_outcome_index(outcome_index);
 	train_data.set_censor_index(censor_index);
+	train_data.set_status_max(status_max);
 
 	if (use_sample_weights) {
 		train_data.set_weight_index(sample_weight_index);
@@ -122,10 +125,12 @@ Rcpp::List survival_predict_oob(const Rcpp::List& forest_object,
 	bool use_sample_weights,
 	int prediction_type,
 	unsigned int num_threads,
-	size_t num_failures) {
+	size_t num_failures,
+	size_t status_max) {
 	Data data = RcppUtilities::convert_data(train_matrix);
 	data.set_outcome_index(outcome_index);
 	data.set_censor_index(censor_index);
+	data.set_status_max(status_max);
 
 	if (use_sample_weights) {
 		data.set_weight_index(sample_weight_index);

@@ -27,7 +27,6 @@
 #include "../splitting/factory/MultiRegressionSplittingRuleFactory.h"
 #include "../splitting/factory/RegressionSplittingRuleFactory.h"
 #include "../splitting/factory/SurvivalSplittingRuleFactory.h"
-#include "../splitting/factory/GSurvivalSplittingRuleFactory.h"
 #include "../splitting/factory/CausalSurvivalSplittingRuleFactory.h"
 
 namespace grf {
@@ -55,15 +54,6 @@ ForestTrainer multi_regression_trainer(size_t num_outcomes) {
 ForestTrainer survival_trainer() {
     std::unique_ptr<RelabelingStrategy> relabeling_strategy(new NoopRelabelingStrategy());
     std::unique_ptr<SplittingRuleFactory> splitting_rule_factory(new SurvivalSplittingRuleFactory());
-
-    return ForestTrainer(std::move(relabeling_strategy),
-        std::move(splitting_rule_factory),
-        nullptr);
-}
-
-ForestTrainer gsurvival_trainer() {
-    std::unique_ptr<RelabelingStrategy> relabeling_strategy(new NoopRelabelingStrategy());
-    std::unique_ptr<SplittingRuleFactory> splitting_rule_factory(new GSurvivalSplittingRuleFactory());
 
     return ForestTrainer(std::move(relabeling_strategy),
         std::move(splitting_rule_factory),

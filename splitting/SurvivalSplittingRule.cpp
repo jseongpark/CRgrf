@@ -58,87 +58,90 @@ bool SurvivalSplittingRule::find_best_split(const Data& data,
 }
 
 void SurvivalSplittingRule::find_best_split_internal(const Data& data,
-                                                     const std::vector<size_t>& possible_split_vars,
-                                                     const Eigen::ArrayXXd& responses_by_sample,
-                                                     const std::vector<size_t>& samples,
-                                                     double& best_value,
-                                                     size_t& best_var,
-                                                     bool& best_send_missing_left,
-                                                     double& best_logrank) {
-  size_t size_node = samples.size();
-  size_t min_child_size = std::max<size_t>(static_cast<size_t>(std::ceil(size_node * alpha)), 1uL);
+    const std::vector<size_t>& possible_split_vars,
+    const Eigen::ArrayXXd& responses_by_sample,
+    const std::vector<size_t>& samples,
+    double& best_value,
+    size_t& best_var,
+    bool& best_send_missing_left,
+    double& best_logrank) {
+    size_t size_node = samples.size();
+    size_t min_child_size = std::max<size_t>(static_cast<size_t>(std::ceil(size_node * alpha)), 1uL);
 
-  // Get the failure values t1, ..., tm in this node
-  std::vector<double> failure_values;
-  for (auto& sample : samples) {
-    if (data.is_failure(sample)) {
-      failure_values.push_back(responses_by_sample(sample, 0));
+    for (int status = 1; status < data.get_status_max() + 1; status++) {
+
+        // Get the failure values t1, ..., tm in this node
+        std::vector<double> failure_values;
+        for (auto& sample : samples) {
+            if (data.is_failure(sample, status)) {
+                failure_values.push_back(responses_by_sample(sample, 0));
+            }
+        }
+
+        size_t num_failures_node = failure_values.size();
+        std::sort(failure_values.begin(), failure_values.end());
+        failure_values.erase(std::unique(failure_values.begin(), failure_values.end()), failure_values.end());
+
+        // The number of unique failure values in this node
+        size_t num_failures = failure_values.size();
+        // If there are no failures or only one failure time there is nothing to do.
+        if (num_failures <= 1) {
+            return;
+        }
+
+        // The number of failures at each time in the parent node. Entry 0 will be zero.
+        // (Entry 0 is for time k < t1)
+        std::vector<double> count_failure(num_failures + 1);
+        // The number of censored observations at each time in the parent node.
+        std::vector<double> count_censor(num_failures + 1);
+        // The number of samples in the parent node at risk at each time point, i.e. the count of observations
+        // with observed time greater than or equal to the given failure time. Entry 0 will be equal to the number
+        // of samples (and the entries will always be monotonically decreasing)
+        std::vector<double> at_risk(num_failures + 1);
+        at_risk[0] = static_cast<double>(size_node);
+
+        // allocating an N-sized (full data set size) array is faster than a hash table
+        std::vector<size_t> relabeled_failures(data.get_num_rows());
+
+        std::vector<double> numerator_weights(num_failures + 1);
+        std::vector<double> denominator_weights(num_failures + 1);
+
+        // Relabel the failure values to range from 0 to the number of failures in this node
+        for (auto& sample : samples) {
+            double failure_value = responses_by_sample(sample, 0);
+            size_t new_failure_value = std::upper_bound(failure_values.begin(), failure_values.end(),
+                failure_value) - failure_values.begin();
+            relabeled_failures[sample] = new_failure_value;
+            if (data.is_failure(sample, status)) {
+                ++count_failure[new_failure_value];
+            }
+            else {
+                ++count_censor[new_failure_value];
+            }
+        }
+
+        for (size_t time = 1; time < num_failures + 1; time++) {
+            at_risk[time] = at_risk[time - 1] - count_failure[time - 1] - count_censor[time - 1];
+
+            /* The logrank statistic is (using the notation in Ishwaran et al. (2008))
+             * sum over all k: dk,l - Yk,l * dk/Yk divided by:
+             *  Yk,l / Yk * (1 - Yk,l / Yk) * (Yk - dk) / (Yk - 1) dk
+             * All terms involving only Yk or dk remain unchanged for each split
+             * and can be precomputed here.
+            */
+            double Yk = at_risk[time];
+            double dk = count_failure[time];
+            numerator_weights[time] = dk / Yk;
+            denominator_weights[time] = (Yk - dk) / (Yk - 1) * dk / (Yk * Yk);
+        }
+
+        for (auto& var : possible_split_vars) {
+            find_best_split_value(data, var, size_node, min_child_size, num_failures_node, num_failures,
+                best_value, best_var, best_logrank, best_send_missing_left, samples, relabeled_failures,
+                count_failure, at_risk, numerator_weights, denominator_weights, status);
+        }
     }
-  }
-
-  size_t num_failures_node = failure_values.size();
-  std::sort(failure_values.begin(), failure_values.end());
-  failure_values.erase(std::unique(failure_values.begin(), failure_values.end()), failure_values.end());
-
-  // The number of unique failure values in this node
-  size_t num_failures = failure_values.size();
-  // If there are no failures or only one failure time there is nothing to do.
-  if (num_failures <= 1) {
-    return;
-  }
-
-  // The number of failures at each time in the parent node. Entry 0 will be zero.
-  // (Entry 0 is for time k < t1)
-  std::vector<double> count_failure(num_failures + 1);
-  // The number of censored observations at each time in the parent node.
-  std::vector<double> count_censor(num_failures + 1);
-  // The number of samples in the parent node at risk at each time point, i.e. the count of observations
-  // with observed time greater than or equal to the given failure time. Entry 0 will be equal to the number
-  // of samples (and the entries will always be monotonically decreasing)
-  std::vector<double> at_risk(num_failures + 1);
-  at_risk[0] = static_cast<double>(size_node);
-
-  // allocating an N-sized (full data set size) array is faster than a hash table
-  std::vector<size_t> relabeled_failures(data.get_num_rows());
-
-  std::vector<double> numerator_weights(num_failures + 1);
-  std::vector<double> denominator_weights(num_failures + 1);
-
-  // Relabel the failure values to range from 0 to the number of failures in this node
-  for (auto& sample : samples) {
-    double failure_value = responses_by_sample(sample, 0);
-    size_t new_failure_value = std::upper_bound(failure_values.begin(), failure_values.end(),
-                                                failure_value) - failure_values.begin();
-    relabeled_failures[sample] = new_failure_value;
-    if (data.is_failure(sample)) {
-      ++count_failure[new_failure_value];
-    } else {
-      ++count_censor[new_failure_value];
-    }
-  }
-
-  for (size_t time = 1; time < num_failures + 1; time++) {
-    at_risk[time] = at_risk[time - 1] - count_failure[time - 1] - count_censor[time - 1];
-
-    /* The logrank statistic is (using the notation in Ishwaran et al. (2008))
-     * sum over all k: dk,l - Yk,l * dk/Yk divided by:
-     *  Yk,l / Yk * (1 - Yk,l / Yk) * (Yk - dk) / (Yk - 1) dk
-     * All terms involving only Yk or dk remain unchanged for each split
-     * and can be precomputed here.
-    */
-    double Yk = at_risk[time];
-    double dk = count_failure[time];
-    numerator_weights[time] = dk / Yk;
-    denominator_weights[time] = (Yk - dk) / (Yk - 1) * dk / (Yk * Yk);
-  }
-
-  for (auto& var : possible_split_vars) {
-    find_best_split_value(data, var, size_node, min_child_size, num_failures_node, num_failures,
-                          best_value, best_var, best_logrank, best_send_missing_left, samples, relabeled_failures,
-                          count_failure, at_risk, numerator_weights, denominator_weights);
-  }
 }
-
 void SurvivalSplittingRule::find_best_split_value(const Data& data,
                                                   size_t var,
                                                   size_t size_node,
@@ -154,7 +157,8 @@ void SurvivalSplittingRule::find_best_split_value(const Data& data,
                                                   const std::vector<double>& count_failure,
                                                   const std::vector<double>& at_risk,
                                                   const std::vector<double>& numerator_weights,
-                                                  const std::vector<double>& denominator_weights) {
+                                                  const std::vector<double>& denominator_weights,
+                                                  size_t status) {
   // possible_split_values contains all the unique split values for this variable in increasing order
   // sorted_samples contains the samples in this node in increasing order
   // if there are missing values, these are placed first
@@ -181,7 +185,7 @@ void SurvivalSplittingRule::find_best_split_value(const Data& data,
     size_t sample_time = relabeled_failures[sample];
 
     if (std::isnan(sample_value)) {
-      if (data.is_failure(sample)) {
+      if (data.is_failure(sample, status)) {
         ++left_count_failure[sample_time];
         ++num_failures_missing;
       } else {
@@ -229,7 +233,7 @@ void SurvivalSplittingRule::find_best_split_value(const Data& data,
       }
 
       if (!split_on_missing) {
-        if (data.is_failure(sample)) {
+        if (data.is_failure(sample, status)) {
           ++left_count_failure[sample_time];
           ++num_failures_left;
         } else {

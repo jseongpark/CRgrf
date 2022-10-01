@@ -27,7 +27,6 @@ ForestTrainer regression_trainer();
 ForestTrainer multi_regression_trainer(size_t num_outcomes);
 
 ForestTrainer survival_trainer();
-ForestTrainer gsurvival_trainer();
 
 ForestTrainer causal_survival_trainer(bool stabilize_splits);
 

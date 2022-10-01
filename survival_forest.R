@@ -142,7 +142,7 @@ survival_forest <- function(X, Y, D = NULL,
   }
   if (!is.null(D)) {
     D <- validate_observations(D, X)
-    if (!all(D %in% c(0, 1))) {
+    if (!all(D %in% seq(0, max(D), 1))) {
         stop("The censor values can only be 0 or 1.")
     }
   }
@@ -186,7 +186,7 @@ survival_forest <- function(X, Y, D = NULL,
                prediction.type = prediction.type,
                compute.oob.predictions = compute.oob.predictions,
                num.threads = num.threads,
-               seed = seed, mahalanobis = mahalanobis, sigma= sigma_)
+               seed = seed, mahalanobis = mahalanobis, sigma= sigma_, status.max = max(D))
 
   forest <- do.call.rcpp(survival_train, c(data, args))
   class(forest) <- c("survival_forest", "grf")
@@ -325,7 +325,8 @@ predict.survival_forest <- function(object,
   args <- list(forest.object = forest.short,
                num.threads = num.threads,
                num.failures = length(failure.times),
-               prediction.type = prediction.type
+               prediction.type = prediction.type,
+               stauts.max = max(object[["D.orig"]])
   )
 
   if (!is.null(newdata)) {
