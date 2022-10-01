@@ -72,6 +72,8 @@ public:
 
   void set_status_index(size_t index);
 
+  void set_max_status(size_t value);
+
   /**
    * Sorts and gets the unique values in `samples` at variable `var`.
    *
@@ -136,6 +138,7 @@ private:
   nonstd::optional<size_t> causal_survival_denominator_index;
   nonstd::optional<size_t> censor_index;
   nonstd::optional<size_t> status_index;
+  nonstd::optional<size_t> max_status;
 };
 
 // inline appropriate getters
@@ -173,6 +176,15 @@ inline double Data::get_weight(size_t row) const {
   } else {
     return 1.0;
   }
+}
+
+inline int Data::set_max_status() const {
+    if (max_status.has_value()) {
+        return max_status.value();
+    }
+    else {
+        return 1;
+    }
 }
 
 inline double Data::get_causal_survival_numerator(size_t row) const {
