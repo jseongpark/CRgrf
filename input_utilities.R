@@ -187,7 +187,6 @@ create_train_matrices <- function(X,
                                   instrument = NULL,
                                   survival.numerator = NULL,
                                   survival.denominator = NULL,
-                                  censor = NULL,
                                   status = NULL,
                                   sample.weights = FALSE) {
   out <- list()
@@ -212,10 +211,6 @@ create_train_matrices <- function(X,
     out[["causal.survival.denominator.index"]] <- offset + 1
     offset <- offset + 1
   }
-  if (!is.null(censor)) {
-    out[["censor.index"]] <- offset + 1
-    offset <- offset + 1
-  }
   if (!is.null(status)) {
     out[["status.index"]] <- offset + 1
     offset <- offset + 1
@@ -236,7 +231,7 @@ create_train_matrices <- function(X,
   }
 
   X <- as.matrix(X)
-  out[["train.matrix"]] <- as.matrix(cbind(X, outcome, treatment, instrument, survival.numerator, survival.denominator, censor, status, sample.weights))
+  out[["train.matrix"]] <- as.matrix(cbind(X, outcome, treatment, instrument, survival.numerator, survival.denominator, status, sample.weights))
 
   out
 }

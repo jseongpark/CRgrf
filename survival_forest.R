@@ -168,7 +168,7 @@ survival_forest <- function(X, Y, D = NULL,
   }
   Y.relabeled <- findInterval(Y, failure.times)
 
-  data <- create_train_matrices(X, outcome = Y.relabeled, sample.weights = sample.weights, censor = D)
+  data <- create_train_matrices(X, outcome = Y.relabeled, sample.weights = sample.weights, status = D)
 
   sigma_ = matrix()
 
@@ -319,7 +319,7 @@ predict.survival_forest <- function(object,
   X <- object[["X.orig"]]
   train.data <- create_train_matrices(X,
                                       outcome = Y.relabeled,
-                                      censor = object[["D.orig"]],
+                                      status = object[["D.orig"]],
                                       sample.weights = object[["sample.weights"]])
 
   args <- list(forest.object = forest.short,

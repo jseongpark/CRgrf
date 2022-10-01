@@ -78,8 +78,8 @@ void Data::set_causal_survival_denominator_index(size_t index) {
   disallowed_split_variables.insert(index);
 }
 
-void Data::set_censor_index(size_t index) {
-  this->censor_index = index;
+void Data::set_status_index(size_t index) {
+  this->status_index = index;
   disallowed_split_variables.insert(index);
 }
 

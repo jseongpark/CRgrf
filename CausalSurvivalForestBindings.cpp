@@ -32,7 +32,7 @@ Rcpp::List causal_survival_train(const Rcpp::NumericMatrix& train_matrix,
                                  size_t causal_survival_numerator_index,
                                  size_t causal_survival_denominator_index,
                                  size_t treatment_index,
-                                 size_t censor_index,
+                                 size_t status_index,
                                  size_t sample_weight_index,
                                  bool use_sample_weights,
                                  unsigned int mtry,
@@ -68,7 +68,7 @@ Rcpp::List causal_survival_train(const Rcpp::NumericMatrix& train_matrix,
   data.set_causal_survival_denominator_index(causal_survival_denominator_index);
   data.set_treatment_index(treatment_index);
   data.set_instrument_index(treatment_index);
-  data.set_censor_index(censor_index);
+  data.set_status_index(status_index);
   if (use_sample_weights) {
       data.set_weight_index(sample_weight_index);
   }

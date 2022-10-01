@@ -68,7 +68,7 @@ public:
 
   void set_causal_survival_denominator_index(size_t index);
 
-  void set_censor_index(size_t index);
+  void set_status_index(size_t index);
 
   void set_status_max(size_t value);
 
@@ -134,7 +134,7 @@ private:
   nonstd::optional<size_t> weight_index;
   nonstd::optional<size_t> causal_survival_numerator_index;
   nonstd::optional<size_t> causal_survival_denominator_index;
-  nonstd::optional<size_t> censor_index;
+  nonstd::optional<size_t> status_index;
   nonstd::optional<size_t> status_max;
 };
 
@@ -193,8 +193,8 @@ inline double Data::get_causal_survival_denominator(size_t row) const {
 }
 
 inline bool Data::is_failure(size_t row, size_t status) const {
-  //return get(row, censor_index.value()) > 0.0;
-    return get(row, censor_index.value()) == 0.0;
+  //return get(row, status_index.value()) > 0.0;
+    return get(row, status_index.value()) == 0.0;
 }
 
 inline double Data::get(size_t row, size_t col) const {
