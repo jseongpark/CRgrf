@@ -88,8 +88,8 @@ void Data::set_status_index(size_t index) {
     disallowed_split_variables.insert(index);
 }
 
-void Data::set_max_status(size_t value) {
-    this->max_status = value;
+void Data::set_status_max(size_t value) {
+    this->status_max = value;
 }
 
 std::vector<size_t> Data::get_all_values(std::vector<double>& all_values,

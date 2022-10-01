@@ -69,7 +69,8 @@ namespace grf {
             const std::vector<double>& count_failure,
             const std::vector<double>& at_risk,
             const std::vector<double>& numerator_weights,
-            const std::vector<double>& denominator_weights);
+            const std::vector<double>& denominator_weights,
+            size_t status);
 
         inline double compute_logrank(size_t num_failures,
             size_t n_left,

@@ -35,7 +35,7 @@ validate_observations <- function(V, X, allow.matrix = FALSE) {
     if (is.matrix(V) && ncol(V) == 1) {
       V <- as.vector(V)
     } else if (!is.vector(V)) {
-      stop("Observations (W, Y, Z or D) must be vectors.")
+      stop("Observations (W, Y, Z, D or S) must be vectors.")
     }
   } else {
     if (is.matrix(V) || is.data.frame(V) || is.vector(V)) {
@@ -188,7 +188,7 @@ create_train_matrices <- function(X,
                                   survival.numerator = NULL,
                                   survival.denominator = NULL,
                                   censor = NULL,
-                                  status = NULL
+                                  status = NULL,
                                   sample.weights = FALSE) {
   out <- list()
   offset <- ncol(X) - 1
@@ -236,7 +236,7 @@ create_train_matrices <- function(X,
   }
 
   X <- as.matrix(X)
-  out[["train.matrix"]] <- as.matrix(cbind(X, outcome, treatment, instrument, survival.numerator, survival.denominator, censor, sample.weights))
+  out[["train.matrix"]] <- as.matrix(cbind(X, outcome, treatment, instrument, survival.numerator, survival.denominator, censor, status, sample.weights))
 
   out
 }

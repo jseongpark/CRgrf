@@ -137,14 +137,24 @@ survival_forest <- function(X, Y, D = NULL, S = NULL,
   validate_sample_weights(sample.weights, X)
   Y <- validate_observations(Y, X)
 
+  status_max = 1
+
   if (any(Y < 0)) {
     stop("The event times must be non-negative.")
   }
-  if (!is.null(D)) {
+  if (!is.null(S)) {
+      status_max = max(S)
+    S <- validate_observations(S, X)
+    if (!all(S %in% seq(0, max(S), 1) )) {
+        stop("The status values can only be non-negative integer.")
+    }
+  } else if (!is.null(D)) {
     D <- validate_observations(D, X)
     if (!all(D %in% c(0, 1))) {
         stop("The censor values can only be 0 or 1.")
     }
+  } else {
+      stop("At least either D or S must be used.")
   }
   
   clusters <- validate_clusters(clusters, X)
@@ -168,7 +178,7 @@ survival_forest <- function(X, Y, D = NULL, S = NULL,
   }
   Y.relabeled <- findInterval(Y, failure.times)
 
-  data <- create_train_matrices(X, outcome = Y.relabeled, sample.weights = sample.weights, censor = D)
+  data <- create_train_matrices(X, outcome = Y.relabeled, sample.weights = sample.weights, censor = D, status = S)
 
   sigma_ = matrix()
 
@@ -186,7 +196,7 @@ survival_forest <- function(X, Y, D = NULL, S = NULL,
                prediction.type = prediction.type,
                compute.oob.predictions = compute.oob.predictions,
                num.threads = num.threads,
-               seed = seed, mahalanobis = mahalanobis, sigma= sigma_)
+               seed = seed, mahalanobis = mahalanobis, sigma= sigma_, status.max = status_max)
 
   forest <- do.call.rcpp(survival_train, c(data, args))
   class(forest) <- c("survival_forest", "grf")
@@ -321,12 +331,14 @@ predict.survival_forest <- function(object,
   train.data <- create_train_matrices(X,
                                       outcome = Y.relabeled,
                                       censor = object[["D.orig"]],
+                                      status = object[["S.orig"]],
                                       sample.weights = object[["sample.weights"]])
 
   args <- list(forest.object = forest.short,
                num.threads = num.threads,
                num.failures = length(failure.times),
-               prediction.type = prediction.type
+               prediction.type = prediction.type,
+               status.max = max(object[["S.orig"]])
   )
 
   if (!is.null(newdata)) {

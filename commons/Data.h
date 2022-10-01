@@ -72,7 +72,7 @@ public:
 
   void set_status_index(size_t index);
 
-  void set_max_status(size_t value);
+  void set_status_max(size_t value);
 
   /**
    * Sorts and gets the unique values in `samples` at variable `var`.
@@ -114,13 +114,15 @@ public:
 
   double get_weight(size_t row) const;
 
+  int get_status_max() const;
+
   double get_causal_survival_numerator(size_t row) const;
 
   double get_causal_survival_denominator(size_t row) const;
 
   bool is_failure(size_t row) const;
 
-  bool is_failure_status(size_t row, size_t index) const;
+  bool is_failure_status(size_t row, size_t status) const;
 
   double get(size_t row, size_t col) const;
 
@@ -138,7 +140,7 @@ private:
   nonstd::optional<size_t> causal_survival_denominator_index;
   nonstd::optional<size_t> censor_index;
   nonstd::optional<size_t> status_index;
-  nonstd::optional<size_t> max_status;
+  nonstd::optional<size_t> status_max;
 };
 
 // inline appropriate getters
@@ -178,9 +180,9 @@ inline double Data::get_weight(size_t row) const {
   }
 }
 
-inline int Data::set_max_status() const {
-    if (max_status.has_value()) {
-        return max_status.value();
+inline int Data::get_status_max() const {
+    if (status_max.has_value()) {
+        return status_max.value();
     }
     else {
         return 1;
@@ -199,8 +201,8 @@ inline bool Data::is_failure(size_t row) const {
   return get(row, censor_index.value()) > 0.0;
 }
 
-inline bool Data::is_failure_status(size_t row, size_t index) const {
-    return get(row, status_index.value()) == index;
+inline bool Data::is_failure_status(size_t row, size_t status) const {
+    return get(row, status_index.value()) == status;
 }
 
 inline double Data::get(size_t row, size_t col) const {
