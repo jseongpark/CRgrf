@@ -23,6 +23,8 @@
 #include "forest/ForestTrainers.h"
 #include "RcppUtilities.h"
 
+#include "commons/utility.h"
+
 using namespace grf;
 
 // [[Rcpp::export]]
@@ -59,11 +61,7 @@ Rcpp::List causal_survival_train(const Rcpp::NumericMatrix& train_matrix,
 
   Eigen::MatrixXd _sigma = Eigen::MatrixXd(y_size, y_size);
   if (!mahalanobis) {
-      for (int i = 0; i < y_size; i++) {
-          for (int j = 0; j < y_size; j++) {
-              _sigma(i, j) = sigma.begin()[i * y_size + j];
-          }
-      }
+      setMatrix(sigma, _sigma, y_size);
   }
 
   data.set_causal_survival_numerator_index(causal_survival_numerator_index);

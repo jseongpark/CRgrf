@@ -24,6 +24,8 @@
 #include "Data.h"
 #include "globals.h"
 
+#include <Rcpp.h>
+
 namespace grf {
 
 /**
@@ -44,6 +46,8 @@ bool equal_doubles(double first, double second, double epsilon);
 std::pair<std::vector<double>, std::vector<size_t>> load_data(const std::string& file_name);
 
 void set_data(std::pair<std::vector<double>, std::vector<size_t>>& data, size_t row, size_t col, double value);
+
+void setMatrix(const Rcpp::NumericMatrix& src, Eigen::MatrixXd des, size_t n);
 
 } // namespace grf
 

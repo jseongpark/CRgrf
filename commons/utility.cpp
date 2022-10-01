@@ -132,4 +132,11 @@ void set_data(std::pair<std::vector<double>, std::vector<size_t>>& data, size_t 
   data.first.at(col * num_rows + row) = value;
 }
 
+void setMatrix(const Rcpp::NumericMatrix& src, Eigen::MatrixXd des, size_t n) {
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            des(i, j) = src.begin()[i * n + j];
+        }
+    }
+}
 } // namespace grf
