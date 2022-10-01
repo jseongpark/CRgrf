@@ -114,7 +114,7 @@
 #' }
 #'
 #' @export
-survival_forest <- function(X, Y, D = NULL, S = NULL,
+gsurvival_forest <- function(X, Y, S,
                             failure.times = NULL,
                             num.trees = 1000,
                             sample.weights = NULL,
@@ -142,20 +142,11 @@ survival_forest <- function(X, Y, D = NULL, S = NULL,
   if (any(Y < 0)) {
     stop("The event times must be non-negative.")
   }
-  if (!is.null(S)) {
-      status_max = max(S)
-    S <- validate_observations(S, X)
-    if (!all(S %in% seq(0, max(S), 1) )) {
-        stop("The status values can only be non-negative integer.")
-    }
-  } else if (!is.null(D)) {
-    D <- validate_observations(D, X)
-    if (!all(D %in% c(0, 1))) {
-        stop("The censor values can only be 0 or 1.")
-    }
-  } else {
-      stop("At least either D or S must be used.")
+  S <- validate_observations(S, X)
+  if (!all(S %in% seq(0, max(S), 1) )) {
+     stop("The status values can only be non-negative integer.")
   }
+  
   
   clusters <- validate_clusters(clusters, X)
   samples.per.cluster <- validate_equalize_cluster_weights(equalize.cluster.weights, clusters, sample.weights)
@@ -172,13 +163,13 @@ survival_forest <- function(X, Y, D = NULL, S = NULL,
   # if the event time is above the latter, but less than the second smallest failure time: set it to 1
   # etc. Will range from 0 to num.failures.
   if (is.null(failure.times)) {
-    failure.times <- sort(unique(Y[D == 1]))
+    failure.times <- sort(unique(Y[S == 1]))
   } else if (is.unsorted(failure.times, strictly = TRUE)) {
     stop("Argument `failure.times` should be a vector with elements in increasing order.")
   }
   Y.relabeled <- findInterval(Y, failure.times)
 
-  data <- create_train_matrices(X, outcome = Y.relabeled, sample.weights = sample.weights, censor = D, status = S)
+  data <- create_train_matrices(X, outcome = Y.relabeled, sample.weights = sample.weights, status = S)
 
   sigma_ = matrix()
 
@@ -196,15 +187,14 @@ survival_forest <- function(X, Y, D = NULL, S = NULL,
                prediction.type = prediction.type,
                compute.oob.predictions = compute.oob.predictions,
                num.threads = num.threads,
-               seed = seed, mahalanobis = mahalanobis, sigma= sigma_, status.max = status_max)
+               seed = seed, mahalanobis = mahalanobis, sigma= sigma_, status.max = max(S))
 
-  forest <- do.call.rcpp(survival_train, c(data, args))
+  forest <- do.call.rcpp(gsurvival_train, c(data, args))
   class(forest) <- c("survival_forest", "grf")
   forest[["seed"]] <- seed
   forest[["X.orig"]] <- X
   forest[["Y.orig"]] <- Y
   forest[["Y.relabeled"]] <- Y.relabeled
-  forest[["D.orig"]] <- D
   forest[["S.orig"]] <- S
   forest[["sample.weights"]] <- sample.weights
   forest[["clusters"]] <- clusters
@@ -330,7 +320,6 @@ predict.survival_forest <- function(object,
   X <- object[["X.orig"]]
   train.data <- create_train_matrices(X,
                                       outcome = Y.relabeled,
-                                      censor = object[["D.orig"]],
                                       status = object[["S.orig"]],
                                       sample.weights = object[["sample.weights"]])
 

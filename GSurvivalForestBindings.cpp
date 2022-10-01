@@ -28,9 +28,8 @@
 using namespace grf;
 
 // [[Rcpp::export]]
-Rcpp::List survival_train(const Rcpp::NumericMatrix& train_matrix,
+Rcpp::List gsurvival_train(const Rcpp::NumericMatrix& train_matrix,
 	size_t outcome_index,
-	size_t censor_index,
 	size_t status_index,
 	size_t sample_weight_index,
 	bool use_sample_weights,
@@ -53,7 +52,7 @@ Rcpp::List survival_train(const Rcpp::NumericMatrix& train_matrix,
 	const Rcpp::NumericMatrix& sigma,
 	size_t status_max
 ) {
-	ForestTrainer trainer = survival_trainer();
+	ForestTrainer trainer = gsurvival_trainer();
 
 	Data data = RcppUtilities::convert_data(train_matrix);
 
@@ -65,7 +64,6 @@ Rcpp::List survival_train(const Rcpp::NumericMatrix& train_matrix,
 	}
 
 	data.set_outcome_index(outcome_index);
-	data.set_censor_index(censor_index);
 	data.set_status_index(status_index);
 	data.set_status_max(status_max);
 
@@ -79,10 +77,13 @@ Rcpp::List survival_train(const Rcpp::NumericMatrix& train_matrix,
 		honesty_fraction, honesty_prune_leaves, alpha, imbalance_penalty, num_threads, seed, clusters, samples_per_cluster, mahalanobis, _sigma);
 	Forest forest = trainer.train(data, options);
 
+
 	std::vector<Prediction> predictions;
 	if (compute_oob_predictions) {
 		ForestPredictor predictor = survival_predictor(num_threads, num_failures, prediction_type);
+		Rcpp::Rcout << "L!!!!!!L~";
 		predictions = predictor.predict_oob(forest, data, false);
+		Rcpp::Rcout << "LLLL????LLL~";
 	}
 
 	return RcppUtilities::create_forest_object(forest, predictions);
@@ -92,7 +93,6 @@ Rcpp::List survival_train(const Rcpp::NumericMatrix& train_matrix,
 Rcpp::List survival_predict(const Rcpp::List& forest_object,
 	const Rcpp::NumericMatrix& train_matrix,
 	size_t outcome_index,
-	size_t censor_index,
 	size_t status_index,
 	size_t sample_weight_index,
 	bool use_sample_weights,
@@ -103,7 +103,6 @@ Rcpp::List survival_predict(const Rcpp::List& forest_object,
 	size_t num_failures) {
 	Data train_data = RcppUtilities::convert_data(train_matrix);
 	train_data.set_outcome_index(outcome_index);
-	train_data.set_censor_index(censor_index);
 	train_data.set_status_index(status_index);
 	train_data.set_status_max(status_max);
 	if (use_sample_weights) {
@@ -124,7 +123,6 @@ Rcpp::List survival_predict(const Rcpp::List& forest_object,
 Rcpp::List survival_predict_oob(const Rcpp::List& forest_object,
 	const Rcpp::NumericMatrix& train_matrix,
 	size_t outcome_index,
-	size_t censor_index,
 	size_t status_index,
 	size_t sample_weight_index,
 	bool use_sample_weights,
@@ -134,7 +132,6 @@ Rcpp::List survival_predict_oob(const Rcpp::List& forest_object,
 	size_t num_failures) {
 	Data data = RcppUtilities::convert_data(train_matrix);
 	data.set_outcome_index(outcome_index);
-	data.set_censor_index(censor_index);
 	data.set_status_index(status_index);
 	data.set_status_max(status_max);
 	if (use_sample_weights) {

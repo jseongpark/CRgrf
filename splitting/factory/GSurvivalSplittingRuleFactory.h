@@ -15,22 +15,27 @@
   along with grf. If not, see <http://www.gnu.org/licenses/>.
  #-------------------------------------------------------------------------------*/
 
-#ifndef GRF_FORESTTRAINERS_H
-#define GRF_FORESTTRAINERS_H
+#ifndef GRF_GSURVIVALSPLITTINGRULEFACTORY_H
+#define GRF_GSURVIVALSPLITTINGRULEFACTORY_H
 
-#include "ForestTrainer.h"
+
+#include "SplittingRuleFactory.h"
 
 namespace grf {
 
-ForestTrainer regression_trainer();
+    /**
+     * A factory that produces standard surivival (logrank) splitting rules.
+     */
+    class GSurvivalSplittingRuleFactory final : public SplittingRuleFactory {
+    public:
+        GSurvivalSplittingRuleFactory() = default;
 
-ForestTrainer multi_regression_trainer(size_t num_outcomes);
-
-ForestTrainer survival_trainer();
-ForestTrainer gsurvival_trainer();
-
-ForestTrainer causal_survival_trainer(bool stabilize_splits);
+        std::unique_ptr<SplittingRule> create(size_t max_num_unique_values,
+            const TreeOptions& options) const;
+    private:
+        DISALLOW_COPY_AND_ASSIGN(GSurvivalSplittingRuleFactory);
+    };
 
 } // namespace grf
 
-#endif //GRF_FORESTTRAINERS_H
+#endif //GRF_GSURVIVALSPLITTINGRULEFACTORY_H

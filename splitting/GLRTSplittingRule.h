@@ -83,7 +83,7 @@ namespace grf {
 
         double alpha;
 
-        DISALLOW_COPY_AND_ASSIGN(SurvivalSplittingRule);
+        DISALLOW_COPY_AND_ASSIGN(GLRTSplittingRule);
     };
 
 } // namespace grf

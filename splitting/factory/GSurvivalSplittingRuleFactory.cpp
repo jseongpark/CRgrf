@@ -15,22 +15,15 @@
   along with grf. If not, see <http://www.gnu.org/licenses/>.
  #-------------------------------------------------------------------------------*/
 
-#ifndef GRF_FORESTTRAINERS_H
-#define GRF_FORESTTRAINERS_H
-
-#include "ForestTrainer.h"
+#include "GSurvivalSplittingRuleFactory.h"
+#include "../GLRTSplittingRule.h"
 
 namespace grf {
 
-ForestTrainer regression_trainer();
-
-ForestTrainer multi_regression_trainer(size_t num_outcomes);
-
-ForestTrainer survival_trainer();
-ForestTrainer gsurvival_trainer();
-
-ForestTrainer causal_survival_trainer(bool stabilize_splits);
+    std::unique_ptr<SplittingRule> GSurvivalSplittingRuleFactory::create(size_t max_num_unique_values,
+        const TreeOptions& options) const {
+        return std::unique_ptr<SplittingRule>(new GLRTSplittingRule(
+            options.get_alpha()));
+    }
 
 } // namespace grf
-
-#endif //GRF_FORESTTRAINERS_H
