@@ -83,6 +83,11 @@ void Data::set_censor_index(size_t index) {
   disallowed_split_variables.insert(index);
 }
 
+void Data::set_status_index(size_t index) {
+    this->status_index = index;
+    disallowed_split_variables.insert(index);
+}
+
 std::vector<size_t> Data::get_all_values(std::vector<double>& all_values,
                                          std::vector<size_t>& sorted_samples,
                                          const std::vector<size_t>& samples,

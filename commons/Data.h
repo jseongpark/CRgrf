@@ -188,7 +188,7 @@ inline bool Data::is_failure(size_t row) const {
 }
 
 inline bool Data::is_failure_status(size_t row, size_t index) const {
-    return get(row, censor_index.value()) == index;
+    return get(row, status_index.value()) == index;
 }
 
 inline double Data::get(size_t row, size_t col) const {
