@@ -175,7 +175,7 @@ inline double Data::get_weight(size_t row) const {
   }
 }
 
-inline int Data::get_status_max() const {
+inline size_t Data::get_status_max() const {
     if (status_max.has_value()) {
         return status_max.value();
     }
@@ -194,7 +194,7 @@ inline double Data::get_causal_survival_denominator(size_t row) const {
 
 inline bool Data::is_failure(size_t row, size_t status) const {
   //return get(row, status_index.value()) > 0.0;
-    return get(row, status_index.value()) == 0.0;
+    return get(row, status_index.value()) == status;
 }
 
 inline double Data::get(size_t row, size_t col) const {

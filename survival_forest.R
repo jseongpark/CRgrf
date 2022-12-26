@@ -143,7 +143,7 @@ survival_forest <- function(X, Y, D = NULL,
   if (!is.null(D)) {
     D <- validate_observations(D, X)
     if (!all(D %in% seq(0, max(D), 1))) {
-        stop("The censor values can only be 0 or 1.")
+        stop("The censor values can only be integer.")
     }
   }
   
