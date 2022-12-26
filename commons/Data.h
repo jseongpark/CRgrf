@@ -112,7 +112,7 @@ public:
 
   double get_weight(size_t row) const;
 
-  int get_status_max() const;
+  size_t get_status_max() const;
 
   double get_causal_survival_numerator(size_t row) const;
 
