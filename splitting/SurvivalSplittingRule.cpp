@@ -68,7 +68,7 @@ void SurvivalSplittingRule::find_best_split_internal(const Data& data,
     size_t size_node = samples.size();
     size_t min_child_size = std::max<size_t>(static_cast<size_t>(std::ceil(size_node * alpha)), 1uL);
 
-    for (int status = 1; status < data.get_status_max() + 1; status++) {
+    for (size_t status = 1; status < data.get_status_max() + 1; status++) {
 
         // Get the failure values t1, ..., tm in this node
         std::vector<double> failure_values;

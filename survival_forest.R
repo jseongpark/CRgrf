@@ -127,7 +127,7 @@ survival_forest <- function(X, Y, D = NULL,
                             honesty.fraction = 0.5,
                             honesty.prune.leaves = TRUE,
                             alpha = 0.05,
-                            prediction.type = c("Kaplan-Meier", "Nelson-Aalen"),
+                            prediction.type = c("Kaplan-Meier", "Nelson-Aalen", "Multi-State"),
                             compute.oob.predictions = TRUE,
                             num.threads = NULL,
                             seed = runif(1, 0, .Machine$integer.max),
@@ -152,9 +152,15 @@ survival_forest <- function(X, Y, D = NULL,
   num.threads <- validate_num_threads(num.threads)
   prediction.type <- match.arg(prediction.type)
   if (prediction.type == "Kaplan-Meier") {
-    prediction.type <- 0
+      if(max(D) > 1){
+          prediction.type <- 2
+      } else {
+          prediction.type <- 0
+      }
   } else if (prediction.type == "Nelson-Aalen") {
     prediction.type <- 1
+  } else if (prediction.type == "Multi-State") {
+      prediction.type <- 2
   }
 
   # Relabel the times to consecutive integers such that:

@@ -21,3 +21,6 @@ run <- function(dir = default_dir) {
 }
 
 run()
+
+source(paste0(default_dir, "/survival_forest.R"))
+sourceCpp(paste0(default_dir, "/", "SurvivalForestBindings.cpp"))
