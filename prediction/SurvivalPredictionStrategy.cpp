@@ -67,8 +67,10 @@ std::vector<double> SurvivalPredictionStrategy::predict(size_t prediction_sample
 
   if (prediction_type == NELSON_AALEN) {
     return predict_nelson_aalen(count_failure, count_censor, sum);
-  } else if (prediction_type == KAPLAN_MEIER || MULTI_STATE) {
+  } else if (prediction_type == KAPLAN_MEIER) {
     return predict_kaplan_meier(count_failure, count_censor, sum);
+  } else if (prediction_type == MULTI_STATE) {
+    return predict_multi_state(count_failure, count_censor, sum);
   } else {
     throw std::runtime_error("SurvivalPredictionStrategy: unknown prediction type");
   }
@@ -97,6 +99,31 @@ std::vector<double> SurvivalPredictionStrategy::predict_kaplan_meier(
   }
 
   return survival_function;
+}
+
+std::vector<double> SurvivalPredictionStrategy::predict_multi_state(
+    const std::vector<double>& count_failure,
+    const std::vector<double>& count_censor,
+    double sum) const {
+    // Kaplan–Meier estimator of the survival function S(t)
+    double kaplan_meier = 1;
+    sum = sum - count_censor[0];
+    std::vector<double> survival_function(num_failures);
+
+    for (size_t time = 1; time <= num_failures; time++) {
+        if (sum > 0) {
+            kaplan_meier = kaplan_meier * (1 - count_failure[time] / sum);
+            // If the estimate hits zero it will stay zero and we can break early.
+            // This also prevents errors from accumulating which may yield some point estimates less than zero.
+            if (kaplan_meier <= 0) {
+                break;
+            }
+        }
+        survival_function[time - 1] = kaplan_meier;
+        sum = sum - count_failure[time] - count_censor[time];
+    }
+
+    return survival_function;
 }
 
 std::vector<double> SurvivalPredictionStrategy::predict_nelson_aalen(
