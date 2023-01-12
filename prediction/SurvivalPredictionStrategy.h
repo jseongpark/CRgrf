@@ -28,7 +28,7 @@ class SurvivalPredictionStrategy final: public DefaultPredictionStrategy {
 public:
   static const int KAPLAN_MEIER;
   static const int NELSON_AALEN;
-
+  static const int MULTI_STATE;
   /**
    * Compute the Kaplan-Meier (prediction_type = 0) or the Nelson-Aalen
    * (prediction_type = 1) estimates of the survival function.

@@ -332,7 +332,7 @@ predict.survival_forest <- function(object,
                num.threads = num.threads,
                num.failures = length(failure.times),
                prediction.type = prediction.type,
-               stauts.max = max(object[["D.orig"]])
+               status.max = max(object[["D.orig"]])
   )
 
   if (!is.null(newdata)) {

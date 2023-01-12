@@ -22,10 +22,11 @@ namespace grf {
 
 const int SurvivalPredictionStrategy::KAPLAN_MEIER = 0;
 const int SurvivalPredictionStrategy::NELSON_AALEN = 1;
+const int SurvivalPredictionStrategy::MULTI_STATE = 2;
 
 SurvivalPredictionStrategy::SurvivalPredictionStrategy(size_t num_failures,
                                                        int prediction_type) {
-  if (!(prediction_type == KAPLAN_MEIER || prediction_type == NELSON_AALEN)) {
+  if (!(prediction_type == KAPLAN_MEIER || prediction_type == NELSON_AALEN || prediction_type == MULTI_STATE)) {
     throw std::runtime_error("SurvivalPredictionStrategy: unknown prediction type");
   }
   this->num_failures = num_failures;
@@ -66,7 +67,7 @@ std::vector<double> SurvivalPredictionStrategy::predict(size_t prediction_sample
 
   if (prediction_type == NELSON_AALEN) {
     return predict_nelson_aalen(count_failure, count_censor, sum);
-  } else if (prediction_type == KAPLAN_MEIER) {
+  } else if (prediction_type == KAPLAN_MEIER || MULTI_STATE) {
     return predict_kaplan_meier(count_failure, count_censor, sum);
   } else {
     throw std::runtime_error("SurvivalPredictionStrategy: unknown prediction type");
