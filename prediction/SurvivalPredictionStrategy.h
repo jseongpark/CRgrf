@@ -44,7 +44,8 @@ public:
    *
    */
   SurvivalPredictionStrategy(size_t num_failures,
-                             int prediction_type);
+                             int prediction_type,
+                             size_t status_max);
 
   size_t prediction_length() const;
 
@@ -79,6 +80,7 @@ private:
 
   size_t num_failures;
   size_t prediction_type;
+  size_t status_max;
 };
 
 } // namespace grf

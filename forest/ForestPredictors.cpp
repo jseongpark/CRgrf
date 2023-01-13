@@ -35,10 +35,10 @@ ForestPredictor multi_regression_predictor(uint num_threads, size_t num_outcomes
   return ForestPredictor(num_threads, std::move(prediction_strategy));
 }
 
-ForestPredictor survival_predictor(uint num_threads, size_t num_failures, int prediction_type) {
+ForestPredictor survival_predictor(uint num_threads, size_t num_failures, int prediction_type, size_t status_max) {
 	num_threads = ForestOptions::validate_num_threads(num_threads);
 	std::unique_ptr<DefaultPredictionStrategy> prediction_strategy(
-		new SurvivalPredictionStrategy(num_failures, prediction_type));
+		new SurvivalPredictionStrategy(num_failures, prediction_type, status_max));
 	return ForestPredictor(num_threads, std::move(prediction_strategy));
 }
 

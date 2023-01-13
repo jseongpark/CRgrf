@@ -26,7 +26,7 @@ ForestPredictor regression_predictor(uint num_threads);
 
 ForestPredictor multi_regression_predictor(uint num_threads, size_t num_outcomes);
 
-ForestPredictor survival_predictor(uint num_threads, size_t num_failures, int prediction_type);
+ForestPredictor survival_predictor(uint num_threads, size_t num_failures, int prediction_type, size_t status_max);
 
 ForestPredictor causal_survival_predictor(uint num_threads);
 

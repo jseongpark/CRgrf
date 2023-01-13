@@ -15,6 +15,8 @@
   along with grf. If not, see <http://www.gnu.org/licenses/>.
  #-------------------------------------------------------------------------------*/
 
+#include <Rcpp.h>
+
 #include <cmath>
 #include "SurvivalPredictionStrategy.h"
 
@@ -25,12 +27,14 @@ const int SurvivalPredictionStrategy::NELSON_AALEN = 1;
 const int SurvivalPredictionStrategy::MULTI_STATE = 2;
 
 SurvivalPredictionStrategy::SurvivalPredictionStrategy(size_t num_failures,
-                                                       int prediction_type) {
+                                                       int prediction_type,
+                                                       size_t status_max) {
   if (!(prediction_type == KAPLAN_MEIER || prediction_type == NELSON_AALEN || prediction_type == MULTI_STATE)) {
     throw std::runtime_error("SurvivalPredictionStrategy: unknown prediction type");
   }
   this->num_failures = num_failures;
   this->prediction_type = prediction_type;
+  this->status_max = status_max;
 }
 
 size_t SurvivalPredictionStrategy::prediction_length() const {
@@ -47,6 +51,7 @@ std::vector<double> SurvivalPredictionStrategy::predict(size_t prediction_sample
   std::vector<double> count_censor(num_failures + 1);
   double sum = 0;
   double sum_weight = 0;
+  Rcpp::Rcout << "status_max:" << status_max << "\n";
   for (const auto& entry : weights_by_sample) {
     size_t sample = entry.first;
     double forest_weight = entry.second;
