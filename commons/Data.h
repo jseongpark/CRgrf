@@ -118,7 +118,9 @@ public:
 
   double get_causal_survival_denominator(size_t row) const;
 
-  bool is_failure(size_t row, size_t status = 1) const;
+  bool is_failure(size_t row) const;
+
+  bool is_failure_status(size_t row, size_t status) const;
 
   double get(size_t row, size_t col) const;
 
@@ -192,11 +194,13 @@ inline double Data::get_causal_survival_denominator(size_t row) const {
   return get(row, causal_survival_denominator_index.value());
 }
 
-inline bool Data::is_failure(size_t row, size_t status) const {
-  //return get(row, status_index.value()) > 0.0;
+inline bool Data::is_failure(size_t row) const {
+  return get(row, status_index.value()) > 0.0;
+}
+inline bool Data::is_failure_status(size_t row, size_t status) const {
+    //return get(row, status_index.value()) > 0.0;
     return get(row, status_index.value()) == status;
 }
-
 inline double Data::get(size_t row, size_t col) const {
   return data_ptr[col * num_rows + row];
 }
