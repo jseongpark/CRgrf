@@ -38,7 +38,7 @@ SurvivalPredictionStrategy::SurvivalPredictionStrategy(size_t num_failures,
 }
 
 size_t SurvivalPredictionStrategy::prediction_length() const {
-  return num_failures;
+  return num_failures * status_max;
 }
 
 std::vector<double> SurvivalPredictionStrategy::predict(size_t prediction_sample,
@@ -51,7 +51,7 @@ std::vector<double> SurvivalPredictionStrategy::predict(size_t prediction_sample
   std::vector<double> count_censor(num_failures + 1);
   double sum = 0;
   double sum_weight = 0;
-  Rcpp::Rcout << "status_max:" << status_max << "\n";
+  Rcpp::Rcout << "prediction_type: " << prediction_type << ", status_max:" << status_max << "\n";
   for (const auto& entry : weights_by_sample) {
     size_t sample = entry.first;
     double forest_weight = entry.second;
@@ -113,7 +113,7 @@ std::vector<double> SurvivalPredictionStrategy::predict_multi_state(
     // Kaplan–Meier estimator of the survival function S(t)
     double kaplan_meier = 1;
     sum = sum - count_censor[0];
-    std::vector<double> survival_function(num_failures);
+    std::vector<double> survival_function(num_failures * status_max);
 
     for (size_t time = 1; time <= num_failures; time++) {
         if (sum > 0) {
