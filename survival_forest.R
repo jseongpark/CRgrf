@@ -136,13 +136,13 @@ survival_forest <- function(X, Y, D = NULL,
   has.missing.values <- validate_X(X, allow.na = TRUE)
   validate_sample_weights(sample.weights, X)
   Y <- validate_observations(Y, X)
-
+  status.max = max(D)
   if (any(Y < 0)) {
     stop("The event times must be non-negative.")
   }
   if (!is.null(D)) {
     D <- validate_observations(D, X)
-    if (!all(D %in% seq(0, max(D), 1))) {
+    if (!all(D %in% seq(0, status.max, 1))) {
         stop("The censor values can only be integer.")
     }
   }
@@ -152,7 +152,7 @@ survival_forest <- function(X, Y, D = NULL,
   num.threads <- validate_num_threads(num.threads)
   prediction.type <- match.arg(prediction.type)
   if (prediction.type == "Kaplan-Meier") {
-      if(max(D) > 1){
+      if(status.max > 1){
           prediction.type <- 2
       } else {
           prediction.type <- 0
@@ -168,7 +168,7 @@ survival_forest <- function(X, Y, D = NULL,
   # if the event time is above the latter, but less than the second smallest failure time: set it to 1
   # etc. Will range from 0 to num.failures.
   if (is.null(failure.times)) {
-    failure.times <- sort(unique(Y[D == 1]))
+    failure.times <- sort(unique(Y[D > 0]))
   } else if (is.unsorted(failure.times, strictly = TRUE)) {
     stop("Argument `failure.times` should be a vector with elements in increasing order.")
   }
@@ -192,7 +192,7 @@ survival_forest <- function(X, Y, D = NULL,
                prediction.type = prediction.type,
                compute.oob.predictions = compute.oob.predictions,
                num.threads = num.threads,
-               seed = seed, mahalanobis = mahalanobis, sigma= sigma_, status.max = max(D))
+               seed = seed, mahalanobis = mahalanobis, sigma= sigma_, status.max = status.max)
 
   forest <- do.call.rcpp(survival_train, c(data, args))
   class(forest) <- c("survival_forest", "grf")
@@ -201,6 +201,7 @@ survival_forest <- function(X, Y, D = NULL,
   forest[["Y.orig"]] <- Y
   forest[["Y.relabeled"]] <- Y.relabeled
   forest[["D.orig"]] <- D
+  forest[["status.max"]] <- status.max
   forest[["sample.weights"]] <- sample.weights
   forest[["clusters"]] <- clusters
   forest[["equalize.cluster.weights"]] <- equalize.cluster.weights
@@ -332,7 +333,7 @@ predict.survival_forest <- function(object,
                num.threads = num.threads,
                num.failures = length(failure.times),
                prediction.type = prediction.type,
-               status.max = max(object[["D.orig"]])
+               status.max = object[["status.max"]]
   )
 
   if (!is.null(newdata)) {
@@ -342,6 +343,6 @@ predict.survival_forest <- function(object,
   } else {
     ret <- do.call.rcpp(survival_predict_oob, c(train.data, args))
   }
-
+  print(object[["status.max"]])
   list(predictions = ret[["predictions"]], failure.times = failure.times)
 }

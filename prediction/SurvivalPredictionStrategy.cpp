@@ -15,150 +15,167 @@
   along with grf. If not, see <http://www.gnu.org/licenses/>.
  #-------------------------------------------------------------------------------*/
 
-#include <Rcpp.h>
-
 #include <cmath>
 #include "SurvivalPredictionStrategy.h"
 
 namespace grf {
 
-const int SurvivalPredictionStrategy::KAPLAN_MEIER = 0;
-const int SurvivalPredictionStrategy::NELSON_AALEN = 1;
-const int SurvivalPredictionStrategy::MULTI_STATE = 2;
+	const int SurvivalPredictionStrategy::KAPLAN_MEIER = 0;
+	const int SurvivalPredictionStrategy::NELSON_AALEN = 1;
+	const int SurvivalPredictionStrategy::MULTI_STATE = 2;
 
-SurvivalPredictionStrategy::SurvivalPredictionStrategy(size_t num_failures,
-                                                       int prediction_type,
-                                                       size_t status_max) {
-  if (!(prediction_type == KAPLAN_MEIER || prediction_type == NELSON_AALEN || prediction_type == MULTI_STATE)) {
-    throw std::runtime_error("SurvivalPredictionStrategy: unknown prediction type");
-  }
-  this->num_failures = num_failures;
-  this->prediction_type = prediction_type;
-  this->status_max = status_max;
-}
+	SurvivalPredictionStrategy::SurvivalPredictionStrategy(size_t num_failures,
+		int prediction_type,
+		size_t status_max) {
+		if (!(prediction_type == KAPLAN_MEIER || prediction_type == NELSON_AALEN || prediction_type == MULTI_STATE)) {
+			throw std::runtime_error("SurvivalPredictionStrategy: unknown prediction type");
+		}
+		this->num_failures = num_failures;
+		this->prediction_type = prediction_type;
+		this->status_max = status_max;
+	}
 
-size_t SurvivalPredictionStrategy::prediction_length() const {
-  return num_failures * status_max;
-}
+	size_t SurvivalPredictionStrategy::prediction_length() const {
+		return num_failures * status_max;
+	}
 
-std::vector<double> SurvivalPredictionStrategy::predict(size_t prediction_sample,
-    const std::unordered_map<size_t, double>& weights_by_sample,
-    const Data& train_data,
-    const Data& data) const {
-  // the event times will always range from 0, ..., num_failures
-  // where num_failures is the count of failures in the training data.
-  std::vector<double> count_failure(num_failures + 1);
-  std::vector<double> count_censor(num_failures + 1);
-  double sum = 0;
-  double sum_weight = 0;
-  Rcpp::Rcout << "prediction_type: " << prediction_type << ", status_max:" << status_max << "\n";
-  for (const auto& entry : weights_by_sample) {
-    size_t sample = entry.first;
-    double forest_weight = entry.second;
-    size_t failure_time = static_cast<size_t>(train_data.get_outcome(sample));
-    double sample_weight = train_data.get_weight(sample);
-    if (train_data.is_failure(sample)) {
-     count_failure[failure_time] += forest_weight * sample_weight;
-    } else {
-     count_censor[failure_time] += forest_weight * sample_weight;
-    }
-    sum += forest_weight * sample_weight;
-    sum_weight += sample_weight;
-  }
+	std::vector<double> SurvivalPredictionStrategy::predict(size_t prediction_sample,
+		const std::unordered_map<size_t, double>& weights_by_sample,
+		const Data& train_data,
+		const Data& data) const {
+		// the event times will always range from 0, ..., num_failures
+		// where num_failures is the count of failures in the training data.
+		std::vector<double> count_failure(num_failures + 1);
+		std::vector<double> count_censor(num_failures + 1);
+		std::vector<size_t> failure_status(num_failures + 1);
 
-  if (std::abs(sum_weight) <= 1e-16) {
-    return std::vector<double>();
-  }
+		double sum = 0;
+		double sum_weight = 0;
 
-  if (prediction_type == NELSON_AALEN) {
-    return predict_nelson_aalen(count_failure, count_censor, sum);
-  } else if (prediction_type == KAPLAN_MEIER) {
-    return predict_kaplan_meier(count_failure, count_censor, sum);
-  } else if (prediction_type == MULTI_STATE) {
-    return predict_multi_state(count_failure, count_censor, sum);
-  } else {
-    throw std::runtime_error("SurvivalPredictionStrategy: unknown prediction type");
-  }
-}
+		for (const auto& entry : weights_by_sample) {
+			size_t sample = entry.first;
+			//double forest_weight = entry.second;
+			size_t failure_time = static_cast<size_t>(train_data.get_outcome(sample));
+			double sample_weight = train_data.get_weight(sample);
+			if (train_data.is_failure(sample)) {
+				count_failure[failure_time] += sample_weight;
+				failure_status[failure_time] = train_data.get_status(sample);
+			}
+			else {
+				count_censor[failure_time] += sample_weight;
+			}
+			sum += sample_weight;
+			sum_weight += sample_weight;
+		}
 
-std::vector<double> SurvivalPredictionStrategy::predict_kaplan_meier(
-  const std::vector<double>& count_failure,
-  const std::vector<double>& count_censor,
-  double sum) const {
-  // Kaplan–Meier estimator of the survival function S(t)
-  double kaplan_meier = 1;
-  sum = sum - count_censor[0];
-  std::vector<double> survival_function(num_failures);
+		if (std::abs(sum_weight) <= 1e-16) {
+			return std::vector<double>();
+		}
 
-  for (size_t time = 1; time <= num_failures; time++) {
-   if (sum > 0) {
-     kaplan_meier = kaplan_meier * (1 - count_failure[time] / sum);
-     // If the estimate hits zero it will stay zero and we can break early.
-     // This also prevents errors from accumulating which may yield some point estimates less than zero.
-     if (kaplan_meier <= 0) {
-       break;
-     }
-   }
-   survival_function[time - 1] = kaplan_meier;
-   sum = sum - count_failure[time] - count_censor[time];
-  }
+		if (prediction_type == NELSON_AALEN) {
+			return predict_nelson_aalen(count_failure, count_censor, sum);
+		}
+		else if (prediction_type == KAPLAN_MEIER) {
+			return predict_kaplan_meier(count_failure, count_censor, sum);
+		}
+		else if (prediction_type == MULTI_STATE) {
+			return predict_multi_state(count_failure, count_censor, failure_status, sum);
+		}
+		else {
+			throw std::runtime_error("SurvivalPredictionStrategy: unknown prediction type");
+		}
+	}
 
-  return survival_function;
-}
+	std::vector<double> SurvivalPredictionStrategy::predict_kaplan_meier(
+		const std::vector<double>& count_failure,
+		const std::vector<double>& count_censor,
+		double sum) const {
+		// Kaplan–Meier estimator of the survival function S(t)
+		double kaplan_meier = 1;
+		sum = sum - count_censor[0];
+		std::vector<double> survival_function(num_failures);
 
-std::vector<double> SurvivalPredictionStrategy::predict_multi_state(
-    const std::vector<double>& count_failure,
-    const std::vector<double>& count_censor,
-    double sum) const {
-    // Kaplan–Meier estimator of the survival function S(t)
-    double kaplan_meier = 1;
-    sum = sum - count_censor[0];
-    std::vector<double> survival_function(num_failures * status_max);
+		for (size_t time = 1; time <= num_failures; time++) {
+			if (sum > 0) {
+				kaplan_meier = kaplan_meier * (1 - count_failure[time] / sum);
+				// If the estimate hits zero it will stay zero and we can break early.
+				// This also prevents errors from accumulating which may yield some point estimates less than zero.
+				if (kaplan_meier <= 0) {
+					break;
+				}
+			}
+			survival_function[time - 1] = kaplan_meier;
+			sum = sum - count_failure[time] - count_censor[time];
+		}
 
-    for (size_t time = 1; time <= num_failures; time++) {
-        if (sum > 0) {
-            kaplan_meier = kaplan_meier * (1 - count_failure[time] / sum);
-            // If the estimate hits zero it will stay zero and we can break early.
-            // This also prevents errors from accumulating which may yield some point estimates less than zero.
-            if (kaplan_meier <= 0) {
-                break;
-            }
-        }
-        survival_function[time - 1] = kaplan_meier;
-        sum = sum - count_failure[time] - count_censor[time];
-    }
+		return survival_function;
+	}
 
-    return survival_function;
-}
+	std::vector<double> SurvivalPredictionStrategy::predict_multi_state(
+		const std::vector<double>& count_failure,
+		const std::vector<double>& count_censor,
+		const std::vector<size_t>& failure_status,
+		double sum) const {
+		// Kaplan–Meier estimator of the survival function S(t)
+		double kaplan_meier = 1;
+		const double sum_0 = sum = sum - count_censor[0];
+		std::vector<double> survival_function(num_failures * status_max, 0);
 
-std::vector<double> SurvivalPredictionStrategy::predict_nelson_aalen(
-  const std::vector<double>& count_failure,
-  const std::vector<double>& count_censor,
-  double sum) const {
-  // Nelson-Aalen estimator of the survival function S(t)
-  double nelson_aalen = 0;
-  sum = sum - count_censor[0];
-  std::vector<double> survival_function(num_failures);
+		for (size_t status = 1; status <= status_max; status++) {
+			size_t index = num_failures * (status - 1);
+			sum = sum_0;
 
-  for (size_t time = 1; time <= num_failures; time++) {
-    if (sum > 0) {
-      nelson_aalen = nelson_aalen - count_failure[time] / sum;
-    }
-    survival_function[time - 1] = exp(nelson_aalen);
-    sum = sum - count_failure[time] - count_censor[time];
-  }
+			survival_function[index] = kaplan_meier * (failure_status[1] == status ? 1 : 0) / sum;
+			for (size_t time = 1; time <= num_failures; time++) {
+				if (sum > 0) {
+					kaplan_meier = kaplan_meier * (1 - count_failure[time] / sum);
+					// If the estimate hits zero it will stay zero and we can break early.
+					// This also prevents errors from accumulating which may yield some point estimates less than zero.
+					if (kaplan_meier <= 0) {
+						break;
+					}
+				}
+				sum = sum - count_failure[time] - count_censor[time];
+				if (sum > 0) survival_function[index + time] = kaplan_meier * (failure_status[1 + time] == status ? 1 : 0) / sum;
+			}
+			for (int i = num_failures - 1; i >= 0; i--) {
+				for (int j = 0; j < i; j++) {
+					survival_function[index + i] += survival_function[index + j];
+				}
+			}
+		}
 
-   return survival_function;
-}
+		return survival_function;
+	}
 
-std::vector<double> SurvivalPredictionStrategy::compute_variance(
-    size_t sample,
-    const std::vector<std::vector<size_t>>& samples_by_tree,
-    const std::unordered_map<size_t, double>& weights_by_sampleID,
-    const Data& train_data,
-    const Data& data,
-    size_t ci_group_size) const {
-  return { 0.0 };
-}
+	std::vector<double> SurvivalPredictionStrategy::predict_nelson_aalen(
+		const std::vector<double>& count_failure,
+		const std::vector<double>& count_censor,
+		double sum) const {
+		// Nelson-Aalen estimator of the survival function S(t)
+		double nelson_aalen = 0;
+		sum = sum - count_censor[0];
+		std::vector<double> survival_function(num_failures);
+
+		for (size_t time = 1; time <= num_failures; time++) {
+			if (sum > 0) {
+				nelson_aalen = nelson_aalen - count_failure[time] / sum;
+			}
+			survival_function[time - 1] = exp(nelson_aalen);
+			sum = sum - count_failure[time] - count_censor[time];
+		}
+
+		return survival_function;
+	}
+
+	std::vector<double> SurvivalPredictionStrategy::compute_variance(
+		size_t sample,
+		const std::vector<std::vector<size_t>>& samples_by_tree,
+		const std::unordered_map<size_t, double>& weights_by_sampleID,
+		const Data& train_data,
+		const Data& data,
+		size_t ci_group_size) const {
+		return { 0.0 };
+	}
 
 } // namespace grf

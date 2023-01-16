@@ -112,6 +112,8 @@ public:
 
   double get_weight(size_t row) const;
 
+  size_t get_status(size_t row) const;
+
   size_t get_status_max() const;
 
   double get_causal_survival_numerator(size_t row) const;
@@ -177,6 +179,10 @@ inline double Data::get_weight(size_t row) const {
   }
 }
 
+inline size_t Data::get_status(size_t row) const {
+    return get(row, status_index.value());
+}
+
 inline size_t Data::get_status_max() const {
     if (status_max.has_value()) {
         return status_max.value();
@@ -198,7 +204,6 @@ inline bool Data::is_failure(size_t row) const {
   return get(row, status_index.value()) > 0.0;
 }
 inline bool Data::is_failure_status(size_t row, size_t status) const {
-    //return get(row, status_index.value()) > 0.0;
     return get(row, status_index.value()) == status;
 }
 inline double Data::get(size_t row, size_t col) const {

@@ -71,6 +71,7 @@ private:
   std::vector<double> predict_multi_state(
       const std::vector<double>& count_failure,
       const std::vector<double>& count_censor,
+      const std::vector<size_t>& failure_status,
       double sum) const;
 
   std::vector<double> predict_nelson_aalen(
