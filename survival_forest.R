@@ -343,6 +343,6 @@ predict.survival_forest <- function(object,
   } else {
     ret <- do.call.rcpp(survival_predict_oob, c(train.data, args))
   }
-  print(object[["status.max"]])
+  ret[["predictions"]] = matrix(ret[["predictions"]], nrow = object[["status.max"]], byrow=TRUE)
   list(predictions = ret[["predictions"]], failure.times = failure.times)
 }
