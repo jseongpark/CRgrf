@@ -343,6 +343,13 @@ predict.survival_forest <- function(object,
   } else {
     ret <- do.call.rcpp(survival_predict_oob, c(train.data, args))
   }
-  ret[["predictions"]] = matrix(ret[["predictions"]], nrow = object[["status.max"]], byrow=TRUE)
+  #ret[["predictions"]] = matrix(ret[["predictions"]], nrow = object[["status.max"]], byrow=TRUE)
+  result = list()
+  len = dim(ret[["predictions"]])[2] / object[["status.max"]]
+  for(count in 1:object[["status.max"]]){
+      result[[paste('s', count, sep='')]] = ret[["predictions"]][, (1 + (count-1) * len): (count * len)]
+  }
+  ret[["predictions"]] = result
+
   list(predictions = ret[["predictions"]], failure.times = failure.times)
 }
