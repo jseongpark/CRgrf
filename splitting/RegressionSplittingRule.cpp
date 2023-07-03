@@ -163,6 +163,7 @@ void RegressionSplittingRule::find_best_split_value(const Data& data,
       sum_left = 0;
     }
 
+    double mu_left = 0.0, mu_right = 0.0;
     for (size_t i = 0; i < num_splits; ++i) {
       // not necessary to evaluate sending right when splitting on NaN.
       if (i == 0 && !send_left) {
@@ -186,15 +187,34 @@ void RegressionSplittingRule::find_best_split_value(const Data& data,
 
       double weight_sum_right = weight_sum_node - weight_sum_left;
       double sum_right = sum_node - sum_left;
-      double decrease = sum_left * sum_left / weight_sum_left + sum_right * sum_right / weight_sum_right;
+
+      mu_left = sum_left / n_left;
+      mu_right = sum_right / n_right;
+      // double decrease = sum_left * sum_left / weight_sum_left + sum_right * sum_right / weight_sum_right;
+
+      double sample_difference;
+      double ssl = 0;
+      for (size_t i = 0; i < n_left; i++) {
+          sample_difference = responses_by_sample(sorted_samples[i], 0);
+          sample_difference = sample_difference - mu_left;
+          ssl += static_cast<double>(sample_difference * sample_difference);
+      }
+
+      double ssr = 0;
+      for (size_t i = n_left; i < size_node; i++) {
+          sample_difference = responses_by_sample(sorted_samples[i], 0);
+          sample_difference = sample_difference - mu_right;
+          ssr += static_cast<double>(sample_difference * sample_difference);
+      }
+
+      double decrease = double(n_left) / size_node * ssl + double(n_right) / size_node * ssr;
 
       // Penalize splits that are too close to the edges of the data.
       double penalty = imbalance_penalty * (1.0 / n_left + 1.0 / n_right);
       decrease -= penalty;
 
-
       // If better than before, use this
-      if (decrease > best_decrease) {
+      if (decrease < best_decrease) {
         best_value = possible_split_values[i];
         best_var = var;
         best_decrease = decrease;
