@@ -193,6 +193,14 @@ void RegressionSplittingRule::find_best_split_value(const Data& data,
       // double decrease = sum_left * sum_left / weight_sum_left + sum_right * sum_right / weight_sum_right;
 
       double sample_difference;
+
+      double sse = 0;
+      for (size_t i = 0; i < size_node; i++) {
+          sample_difference = responses_by_sample(sorted_samples[i], 0);
+          sample_difference = sample_difference - sum_node/size_node;
+          sse += static_cast<double>(sample_difference * sample_difference);
+      }
+
       double ssl = 0;
       for (size_t i = 0; i < n_left; i++) {
           sample_difference = responses_by_sample(sorted_samples[i], 0);
@@ -207,14 +215,14 @@ void RegressionSplittingRule::find_best_split_value(const Data& data,
           ssr += static_cast<double>(sample_difference * sample_difference);
       }
 
-      double decrease = double(n_left) / size_node * ssl + double(n_right) / size_node * ssr;
+      double decrease = sse - (ssl + ssr);
 
       // Penalize splits that are too close to the edges of the data.
       double penalty = imbalance_penalty * (1.0 / n_left + 1.0 / n_right);
       decrease -= penalty;
 
       // If better than before, use this
-      if (decrease < best_decrease) {
+      if (decrease > best_decrease) {
         best_value = possible_split_values[i];
         best_var = var;
         best_decrease = decrease;
