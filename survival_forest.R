@@ -335,7 +335,6 @@ predict.survival_forest <- function(object,
                prediction.type = prediction.type,
                status.max = object[["status.max"]]
   )
-
   if (!is.null(newdata)) {
     validate_newdata(newdata, X, allow.na = TRUE)
     test.data <- create_test_matrices(newdata)

@@ -17,6 +17,7 @@
 
 #include <cmath>
 #include "SurvivalPredictionStrategy.h"
+#include <Rcpp.h>
 
 namespace grf {
 
@@ -124,8 +125,8 @@ namespace grf {
 		for (size_t status = 1; status <= status_max; status++) {
 			size_t index = num_failures * (status - 1);
 			sum = sum_0;
-
-			survival_function[index] = kaplan_meier * (failure_status[1] == status ? 1 : 0) / sum;
+			kaplan_meier = 1;
+			survival_function[index] = kaplan_meier * (failure_status[1] == status ? 1.0 : 0.0) / sum;
 			for (size_t time = 1; time <= num_failures; time++) {
 				if (sum > 0) {
 					kaplan_meier = kaplan_meier * (1 - count_failure[time] / sum);
@@ -136,7 +137,7 @@ namespace grf {
 					}
 				}
 				sum = sum - count_failure[time] - count_censor[time];
-				if (sum > 0) survival_function[index + time] = kaplan_meier * (failure_status[1 + time] == status ? 1 : 0) / sum;
+				if (sum > 0) survival_function[index + time] = kaplan_meier * (failure_status[1 + time] == status ? 1. : 0.) / sum;
 			}
 			for (int i = num_failures - 1; i >= 0; i--) {
 				for (int j = 0; j < i; j++) {
