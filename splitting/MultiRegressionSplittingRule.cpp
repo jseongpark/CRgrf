@@ -21,7 +21,7 @@
 
 #include <Rcpp.h>
 namespace grf {
-    //max_num_unique_values = 총 데이터 개수
+
 MultiRegressionSplittingRule::MultiRegressionSplittingRule(size_t max_num_unique_values,
                                                            double alpha,
                                                            double imbalance_penalty,
@@ -52,7 +52,7 @@ bool MultiRegressionSplittingRule::find_best_split(const Data& data,
   size_t min_child_size = std::max<size_t>(static_cast<size_t>(std::ceil(size_node * alpha)), 1uL);
 
   // Precompute the sum of outcomes in this node.
-  Eigen::ArrayXd sum_node = Eigen::ArrayXd::Zero(num_outcomes); // num_outcomes = 서로 다른 variables Y의 개수
+  Eigen::ArrayXd sum_node = Eigen::ArrayXd::Zero(num_outcomes);
   for (auto& sample : samples[node]) {
     sum_node += responses_by_sample.row(sample);
   }
@@ -91,8 +91,8 @@ void MultiRegressionSplittingRule::find_best_split_value(const Data& data,
                                                     const std::vector<std::vector<size_t>>& samples,
                                                     bool mahalanobis, Eigen::MatrixXd sigma) {
   // sorted_samples: the node samples in increasing order (may contain duplicated Xij). Length: size_node
-  std::vector<double> possible_split_values; // 실제 값인데, 중복 제외
-  std::vector<size_t> sorted_samples; // 실제 index
+  std::vector<double> possible_split_values;
+  std::vector<size_t> sorted_samples;
   data.get_all_values(possible_split_values, sorted_samples, samples[node], var);
 
   Eigen::VectorXd mu_left = Eigen::VectorXd::Zero(num_outcomes);
